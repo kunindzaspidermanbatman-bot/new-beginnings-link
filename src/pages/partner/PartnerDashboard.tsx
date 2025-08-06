@@ -8,7 +8,6 @@ import { Plus, Building2, Settings } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import BookingNotifications from '@/components/BookingNotifications';
 import PartnerLayout from '@/components/PartnerLayout';
-import { EmailTestButton } from '@/components/EmailTestButton';
 import { SkeletonCard, SkeletonList } from '@/components/ui/loading';
 
 const PartnerDashboard = () => {
@@ -54,9 +53,6 @@ const PartnerDashboard = () => {
           <p className="text-gray-600 dark:text-gray-400">
             Manage your venues and track bookings from your dashboard
           </p>
-          <div className="mt-4">
-            <EmailTestButton />
-          </div>
         </div>
 
         {/* Stats Cards */}
