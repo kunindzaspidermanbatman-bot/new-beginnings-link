@@ -307,7 +307,7 @@ const VenueCard = ({ venue, compact = false, searchMode = false, onHover }: Venu
           <div className={`flex items-center justify-between border-t border-gray-100 ${searchMode ? 'pt-0.5' : 'pt-1'}`}>
             {/* Price */}
             <div className="flex items-baseline gap-1">
-              <span className={`font-bold price-display ${searchMode ? 'text-lg' : 'text-lg'}`}>
+              <span className={`font-bold price-display ${searchMode ? 'text-sm' : 'text-lg'}`}>
                 {services && services.length > 0 
                   ? (() => {
                       const prices = services.map(service => {

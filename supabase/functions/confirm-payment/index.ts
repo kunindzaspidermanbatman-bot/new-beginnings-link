@@ -234,7 +234,7 @@ serve(async (req) => {
                 <p><strong>Date:</strong> ${new Date(bookingData.date).toLocaleDateString()}</p>
                 <p><strong>Time:</strong> ${bookingData.time}</p>
                 <p><strong>Guests:</strong> ${bookingData.guests}</p>
-                <p><strong>Total:</strong> GEL ${Number(bookingData.total).toFixed(2)}</p>
+                <p><strong>Total:</strong> ${Number(bookingData.total).toFixed(2)} GEL</p>
                 ${bookingData.specialRequests ? `<p><strong>Special Requests:</strong> ${bookingData.specialRequests}</p>` : ''}
               </div>
               

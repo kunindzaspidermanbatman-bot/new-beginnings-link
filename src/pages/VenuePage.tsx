@@ -216,12 +216,7 @@ const VenuePage = () => {
 
 
 
-              {/* Additional Info */}
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  You can message the host to customize or make changes.
-                </p>
-              </div>
+
             </div>
           </div>
         </div>

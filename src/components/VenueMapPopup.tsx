@@ -105,7 +105,7 @@ const VenueMapPopup = ({ venue, onClose }: VenueMapPopupProps) => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-1">
             <span className="font-bold text-gray-900 text-lg">
-              {getMinPrice() ? `GEL ${getMinPrice()}` : 'Contact'}
+              {getMinPrice() ? `${getMinPrice()} GEL` : 'Contact'}
             </span>
             <span className="text-gray-500 text-sm">
               {getMinPrice() ? '/hour' : ''}

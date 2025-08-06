@@ -90,7 +90,7 @@ const VenueMarker = ({ venue, coordinates, onVenueClick, map, isSelected }: {
 
     // Airbnb-style font and text setup
     ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-          const text = `GEL ${price}`;
+          const text = `${price} GEL`;
     const textMetrics = ctx.measureText(text);
     const textWidth = textMetrics.width;
     

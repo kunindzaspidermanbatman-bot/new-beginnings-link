@@ -164,7 +164,7 @@ const EnhancedSearchFilters = () => {
             onClick={() => navigate('/search')}
             className="h-8 w-8 text-primary hover:text-primary/80 hover:bg-primary/10"
           >
-            <Map className="h-4 w-4" />
+            <Map className="h-5 w-5" />
           </Button>
         </div>
 
@@ -212,7 +212,7 @@ const EnhancedSearchFilters = () => {
             className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full w-8 h-8 p-0 shadow-lg"
             disabled={loading}
           >
-            <Search className="h-3 w-3" />
+            <Search className="h-4 w-4" />
           </Button>
         </div>
       </div>
