@@ -38,13 +38,13 @@ export const useVenueReviews = (venueId: string) => {
         (data || []).map(async (review) => {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('full_name')
+            .select('full_name, email')
             .eq('id', review.user_id)
             .single();
           
           return {
             ...review,
-            user_name: profile?.full_name || 'Anonymous'
+            user_name: profile?.full_name || profile?.email?.split('@')[0] || 'Anonymous'
           };
         })
       );
