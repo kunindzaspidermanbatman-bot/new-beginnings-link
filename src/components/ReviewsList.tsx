@@ -23,6 +23,16 @@ const ReviewsList = ({ venueId }: ReviewsListProps) => {
   const deleteReview = useDeleteReview();
   const { toast } = useToast();
 
+  // Debug logging
+  console.log('ReviewsList Debug:', {
+    venueId,
+    user: user?.id,
+    reviewsCount: reviews?.length,
+    reviews: reviews,
+    userReview: userReview,
+    hasCompletedBookings: completedBookings && completedBookings.length > 0
+  });
+
   const hasCompletedBookings = completedBookings && completedBookings.length > 0;
   const canWriteReview = user && hasCompletedBookings && !userReview;
 
@@ -163,6 +173,35 @@ const ReviewsList = ({ venueId }: ReviewsListProps) => {
             </CardContent>
           </Card>
         ))}
+        
+        {/* Fallback: Show all reviews if no user is logged in or if filtering fails */}
+        {(!user || reviews?.filter(review => review.user_id !== user?.id).length === 0) && reviews && reviews.length > 0 && (
+          <div className="space-y-4">
+            <h4 className="text-lg font-medium">All Reviews</h4>
+            {reviews.map((review) => (
+              <Card key={review.id}>
+                <CardContent className="pt-6">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      {renderStars(review.rating)}
+                      <span className="font-medium text-sm">
+                        {review.user_name || 'Anonymous'}
+                      </span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {format(new Date(review.created_at), 'MMM d, yyyy')}
+                    </span>
+                  </div>
+                  {review.comment && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {review.comment}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
       {(!reviews || reviews.length === 0) && (
