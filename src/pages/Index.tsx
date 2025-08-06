@@ -81,9 +81,12 @@ const Index = () => {
     // Apply location filter (OR logic within locations)
     if (filters.location && filters.location.length > 0) {
       filtered = filtered.filter(venue => 
-        filters.location.some((location: string) =>
-          venue.location.toLowerCase().includes(location.toLowerCase())
-        )
+        filters.location.some((location: string) => {
+          // Check both district and location fields for matches
+          const districtMatch = venue.district && venue.district.toLowerCase().includes(location.toLowerCase());
+          const locationMatch = venue.location.toLowerCase().includes(location.toLowerCase());
+          return districtMatch || locationMatch;
+        })
       );
       console.log('After location filter:', filtered.length, 'venues', 'Locations:', filters.location);
     }
