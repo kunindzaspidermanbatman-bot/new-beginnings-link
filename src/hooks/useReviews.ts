@@ -54,23 +54,23 @@ export const useVenueReviews = (venueId: string) => {
   });
 };
 
-export const useUserReviewForVenue = (venueId: string) => {
+export const useUserReviewsForVenue = (venueId: string) => {
   const { user } = useAuth();
   
   return useQuery({
-    queryKey: ['user-review', venueId, user?.id],
+    queryKey: ['user-reviews', venueId, user?.id],
     queryFn: async () => {
-      if (!user?.id) return null;
+      if (!user?.id) return [];
       
       const { data, error } = await supabase
         .from('reviews')
         .select('*')
         .eq('venue_id', venueId)
         .eq('user_id', user.id)
-        .maybeSingle();
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as Review | null;
+      return data as Review[];
     },
     enabled: !!user?.id,
   });

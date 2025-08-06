@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { Star, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useVenueReviews, useDeleteReview, useUserReviewForVenue, useUserCompletedBookings, type Review } from '@/hooks/useReviews';
+import { useVenueReviews, useDeleteReview, useUserReviewsForVenue, useUserCompletedBookings, type Review } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import ReviewForm from './ReviewForm';
@@ -18,7 +18,7 @@ const ReviewsList = ({ venueId }: ReviewsListProps) => {
   
   const { user } = useAuth();
   const { data: reviews, isLoading } = useVenueReviews(venueId);
-  const { data: userReview } = useUserReviewForVenue(venueId);
+  const { data: userReviews } = useUserReviewsForVenue(venueId);
   const { data: completedBookings, isLoading: bookingsLoading } = useUserCompletedBookings(venueId);
   const deleteReview = useDeleteReview();
   const { toast } = useToast();
@@ -28,13 +28,15 @@ const ReviewsList = ({ venueId }: ReviewsListProps) => {
     venueId,
     user: user?.id,
     reviewsCount: reviews?.length,
-    reviews: reviews,
-    userReview: userReview,
-    hasCompletedBookings: completedBookings && completedBookings.length > 0
+    userReviewsCount: userReviews?.length,
+    completedBookingsCount: completedBookings?.length,
+    userReviews: userReviews,
+    completedBookings: completedBookings
   });
 
-  const hasCompletedBookings = completedBookings && completedBookings.length > 0;
-  const canWriteReview = user && hasCompletedBookings && !userReview;
+  const completedBookingsCount = completedBookings?.length || 0;
+  const userReviewsCount = userReviews?.length || 0;
+  const canWriteReview = user && completedBookingsCount > 0 && userReviewsCount < completedBookingsCount;
 
   const handleDeleteReview = async (reviewId: string) => {
     if (!confirm('Are you sure you want to delete your review?')) return;
@@ -91,9 +93,15 @@ const ReviewsList = ({ venueId }: ReviewsListProps) => {
           </Button>
         )}
         
-        {user && !hasCompletedBookings && !bookingsLoading && (
+        {user && completedBookingsCount === 0 && !bookingsLoading && (
           <p className="text-sm text-muted-foreground">
             Complete a booking to write a review
+          </p>
+        )}
+        
+        {user && completedBookingsCount > 0 && userReviewsCount >= completedBookingsCount && (
+          <p className="text-sm text-muted-foreground">
+            You've written {userReviewsCount} review{userReviewsCount !== 1 ? 's' : ''} for {completedBookingsCount} visit{completedBookingsCount !== 1 ? 's' : ''}
           </p>
         )}
       </div>
@@ -110,43 +118,48 @@ const ReviewsList = ({ venueId }: ReviewsListProps) => {
         />
       )}
 
-      {/* User's existing review with edit option */}
-      {userReview && !editingReview && !showReviewForm && (
-        <Card className="border-primary bg-primary/5">
-          <CardContent className="pt-6">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  {renderStars(userReview.rating)}
-                  <span className="text-sm text-muted-foreground">Your review</span>
+      {/* User's existing reviews with edit option */}
+      {userReviews && userReviews.length > 0 && !editingReview && !showReviewForm && (
+        <div className="space-y-4">
+          <h4 className="text-lg font-medium">Your Reviews</h4>
+          {userReviews.map((userReview) => (
+            <Card key={userReview.id} className="border-primary bg-primary/5">
+              <CardContent className="pt-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      {renderStars(userReview.rating)}
+                      <span className="text-sm text-muted-foreground">Your review</span>
+                    </div>
+                    {userReview.comment && (
+                      <p className="text-sm mb-2">{userReview.comment}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(userReview.created_at), 'MMM d, yyyy')}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingReview(userReview)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteReview(userReview.id)}
+                      disabled={deleteReview.isPending}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-                {userReview.comment && (
-                  <p className="text-sm mb-2">{userReview.comment}</p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  {format(new Date(userReview.created_at), 'MMM d, yyyy')}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setEditingReview(userReview)}
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDeleteReview(userReview.id)}
-                  disabled={deleteReview.isPending}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
 
       {/* Other reviews */}
