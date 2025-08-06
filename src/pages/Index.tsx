@@ -125,20 +125,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      
-      {/* Admin Access Button - Mobile responsive */}
-      <div className="fixed top-20 right-2 sm:right-4 z-40">
-        <Button 
-          onClick={() => window.location.href = '/admin'}
-          className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2"
-          size="sm"
-        >
-          <span className="hidden sm:inline">Admin Panel</span>
-          <span className="sm:hidden">Admin</span>
-        </Button>
-      </div>
-      
-
 
       {/* Enhanced Featured Venues Section */}
       <section className="section-padding bg-white">
