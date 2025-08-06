@@ -6,6 +6,7 @@ import { useUserReviewForBooking } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
 import ReviewForm from '@/components/ReviewForm';
 import { isAfter, parse } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
 export const PostVisitReviewDialog = () => {
   const { user } = useAuth();
@@ -27,77 +28,89 @@ export const PostVisitReviewDialog = () => {
   useEffect(() => {
     if (!user || !bookings || bookings.length === 0) return;
 
-    const now = new Date();
-    console.log('PostVisitReviewDialog: Current time:', now.toISOString());
-    console.log('PostVisitReviewDialog: Available bookings:', bookings.length);
-    
-    // Find completed bookings that haven't been reviewed
-    const completedBookingsNeedingReview = bookings.filter(booking => {
-      console.log('PostVisitReviewDialog: Checking booking:', booking.id, 'Status:', booking.status, 'Date:', booking.booking_date, 'Time:', booking.booking_time);
+    const checkBookingsForReview = async () => {
+      const now = new Date();
+      console.log('PostVisitReviewDialog: Current time:', now.toISOString());
+      console.log('PostVisitReviewDialog: Available bookings:', bookings.length);
       
-      // Skip if we already showed review dialog for this booking
-      if (reviewedBookings.has(booking.id)) {
-        console.log('PostVisitReviewDialog: Already reviewed:', booking.id);
-        return false;
-      }
+      // Find completed bookings that haven't been reviewed
+      const completedBookingsNeedingReview = [];
       
-      // Skip if user permanently ignored this booking
-      if (ignoredBookings.has(booking.id)) {
-        console.log('PostVisitReviewDialog: Permanently ignored:', booking.id);
-        return false;
+      for (const booking of bookings) {
+        console.log('PostVisitReviewDialog: Checking booking:', booking.id, 'Status:', booking.status, 'Date:', booking.booking_date, 'Time:', booking.booking_time);
+        
+        // Skip if we already showed review dialog for this booking
+        if (reviewedBookings.has(booking.id)) {
+          console.log('PostVisitReviewDialog: Already reviewed:', booking.id);
+          continue;
+        }
+        
+        // Skip if user permanently ignored this booking
+        if (ignoredBookings.has(booking.id)) {
+          console.log('PostVisitReviewDialog: Permanently ignored:', booking.id);
+          continue;
+        }
+        
+        // Skip if booking isn't confirmed
+        if (booking.status !== 'confirmed') {
+          console.log('PostVisitReviewDialog: Not confirmed:', booking.id, booking.status);
+          continue;
+        }
+        
+        // Check if booking time has passed
+        try {
+          const bookingDateTime = parse(
+            `${booking.booking_date} ${booking.booking_time}`,
+            'yyyy-MM-dd HH:mm:ss',
+            new Date()
+          );
+          
+          // Add duration based on booking data (default to 1 hour)
+          const durationMs = 1 * 60 * 60 * 1000; // 1 hour in milliseconds
+          const bookingEndTime = new Date(bookingDateTime.getTime() + durationMs);
+          
+          console.log('PostVisitReviewDialog: Booking', booking.id, 'ends at:', bookingEndTime.toISOString(), 'Current time:', now.toISOString());
+          
+          const hasEnded = isAfter(now, bookingEndTime);
+          console.log('PostVisitReviewDialog: Booking has ended:', hasEnded);
+          
+          if (!hasEnded) continue;
+          
+          // Check if user already has a review for this booking
+          const { data: existingReviewForBooking } = await supabase
+            .from('reviews')
+            .select('id')
+            .eq('booking_id', booking.id)
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          if (existingReviewForBooking) {
+            console.log('PostVisitReviewDialog: Found existing review for booking:', booking.id);
+            // Mark as reviewed so it doesn't show again
+            setReviewedBookings(prev => new Set(prev).add(booking.id));
+            continue;
+          }
+          
+          completedBookingsNeedingReview.push(booking);
+        } catch (error) {
+          console.error('PostVisitReviewDialog: Error parsing booking time:', error);
+          continue;
+        }
       }
-      
-      // Skip if booking isn't confirmed
-      if (booking.status !== 'confirmed') {
-        console.log('PostVisitReviewDialog: Not confirmed:', booking.id, booking.status);
-        return false;
-      }
-      
-      // Check if booking time has passed
-      try {
-        const bookingDateTime = parse(
-          `${booking.booking_date} ${booking.booking_time}`,
-          'yyyy-MM-dd HH:mm:ss',
-          new Date()
-        );
-        
-        // Add duration based on booking data (default to 1 hour)
-        const durationMs = 1 * 60 * 60 * 1000; // 1 hour in milliseconds
-        const bookingEndTime = new Date(bookingDateTime.getTime() + durationMs);
-        
-        console.log('PostVisitReviewDialog: Booking', booking.id, 'ends at:', bookingEndTime.toISOString(), 'Current time:', now.toISOString());
-        
-        const hasEnded = isAfter(now, bookingEndTime);
-        console.log('PostVisitReviewDialog: Booking has ended:', hasEnded);
-        
-        return hasEnded;
-      } catch (error) {
-        console.error('PostVisitReviewDialog: Error parsing booking time:', error);
-        return false;
-      }
-    });
 
-    console.log('PostVisitReviewDialog: Completed bookings needing review:', completedBookingsNeedingReview.length);
-    
-    // Show dialog for the first completed booking that needs review
-    if (completedBookingsNeedingReview.length > 0 && !dialogOpen) {
-      const bookingToReview = completedBookingsNeedingReview[0];
-      console.log('PostVisitReviewDialog: Setting booking for review:', bookingToReview.id);
-      setCurrentBookingForReview(bookingToReview);
-      setDialogOpen(true);
-    }
+      console.log('PostVisitReviewDialog: Completed bookings needing review:', completedBookingsNeedingReview.length);
+      
+      // Show dialog for the first completed booking that needs review
+      if (completedBookingsNeedingReview.length > 0 && !dialogOpen) {
+        const bookingToReview = completedBookingsNeedingReview[0];
+        console.log('PostVisitReviewDialog: Setting booking for review:', bookingToReview.id);
+        setCurrentBookingForReview(bookingToReview);
+        setDialogOpen(true);
+      }
+    };
+
+    checkBookingsForReview();
   }, [bookings, user, dialogOpen, reviewedBookings, ignoredBookings]);
-
-  // If there's an existing review for this booking, don't show the dialog
-  useEffect(() => {
-    if (existingReview && currentBookingForReview) {
-      console.log('PostVisitReviewDialog: Found existing review for booking:', currentBookingForReview.id);
-      setDialogOpen(false);
-      setCurrentBookingForReview(null);
-      // Mark as reviewed so it doesn't show again
-      setReviewedBookings(prev => new Set(prev).add(currentBookingForReview.id));
-    }
-  }, [existingReview, currentBookingForReview]);
 
   const handleCloseDialog = () => {
     if (currentBookingForReview) {
