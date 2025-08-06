@@ -17,7 +17,7 @@ const VenueMapPopup = ({ venue, onClose }: VenueMapPopupProps) => {
     if (services && services.length > 0) {
       const prices = services.map(service => {
         const displayPrice = getServiceDisplayPrice(service);
-        const numericMatch = displayPrice.match(/(\d+)₾/);
+        const numericMatch = displayPrice.match(/(\d+) GEL/);
         return numericMatch ? parseInt(numericMatch[1]) : service.price;
       });
       return Math.min(...prices);
@@ -105,7 +105,7 @@ const VenueMapPopup = ({ venue, onClose }: VenueMapPopupProps) => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-1">
             <span className="font-bold text-gray-900 text-lg">
-              {getMinPrice() ? `₾${getMinPrice()}` : 'Contact'}
+              {getMinPrice() ? `GEL ${getMinPrice()}` : 'Contact'}
             </span>
             <span className="text-gray-500 text-sm">
               {getMinPrice() ? '/hour' : ''}

@@ -232,7 +232,7 @@ const MapboxVenueMap = ({
       
       markerEl.innerHTML = `
         <div class="${markerClass} ${selectedVenue?.id === venue.id ? 'selected' : ''}" data-venue-id="${venue.id}">
-          <span class="price-text">₾${minPrice}</span>
+                          <span class="price-text">GEL ${minPrice}</span>
         </div>
       `;
 

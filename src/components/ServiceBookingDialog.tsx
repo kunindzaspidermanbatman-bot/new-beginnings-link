@@ -498,18 +498,18 @@ const ServiceBookingDialog = ({
               {savings > 0 && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Original Price</span>
-                  <span className="line-through text-muted-foreground">{totalPrice.toFixed(2)}₾</span>
+                  <span className="line-through text-muted-foreground">{totalPrice.toFixed(2)} GEL</span>
                 </div>
               )}
               {savings > 0 && (
                 <div className="flex items-center justify-between text-sm text-green-600">
                   <span>Discount Savings</span>
-                  <span>-{savings.toFixed(2)}₾</span>
+                  <span>-{savings.toFixed(2)} GEL</span>
                 </div>
               )}
               <div className="flex items-center justify-between text-lg font-semibold">
                 <span>Total</span>
-                <span className={savings > 0 ? "text-green-600" : ""}>{finalPrice.toFixed(2)}₾</span>
+                <span className={savings > 0 ? "text-green-600" : ""}>{finalPrice.toFixed(2)} GEL</span>
               </div>
               {discountData?.appliedDiscounts && discountData.appliedDiscounts.length > 0 && (
                 <div className="text-xs text-green-600">
@@ -522,14 +522,14 @@ const ServiceBookingDialog = ({
                   if (!guestPrice) return 'Not available for this guest count';
                   
                   if (!arrivalTime || !departureTime) {
-                    return `${guestPrice}₾ total for ${guests} guest${guests !== 1 ? 's' : ''}`;
+                    return `${guestPrice} GEL total for ${guests} guest${guests !== 1 ? 's' : ''}`;
                   }
                   
                   const start = new Date(`2000-01-01T${arrivalTime}:00`);
                   const end = new Date(`2000-01-01T${departureTime}:00`);
                   const diffMs = end.getTime() - start.getTime();
                   const hours = diffMs / (1000 * 60 * 60);
-                  return `${guestPrice}₾ × ${hours} hour${hours !== 1 ? 's' : ''} ${savings > 0 ? '- discounts' : ''} = ${finalPrice.toFixed(2)}₾`;
+                  return `${guestPrice} GEL × ${hours} hour${hours !== 1 ? 's' : ''} ${savings > 0 ? '- discounts' : ''} = ${finalPrice.toFixed(2)} GEL`;
                 })()}
               </p>
             </div>

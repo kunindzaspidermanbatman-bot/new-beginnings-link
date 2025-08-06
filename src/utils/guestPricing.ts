@@ -75,7 +75,7 @@ export const isValidGuestCount = (
  */
 export const getServiceDisplayPrice = (service: ServiceWithGuestPricing): string => {
   if (!service.guest_pricing_rules || service.guest_pricing_rules.length === 0) {
-    return `${service.price}₾/guest`;
+    return `${service.price} GEL/guest`;
   }
 
   if (service.guest_pricing_rules.length === 0) {
@@ -83,5 +83,5 @@ export const getServiceDisplayPrice = (service: ServiceWithGuestPricing): string
   }
 
   const lowestPrice = Math.min(...service.guest_pricing_rules.map(rule => rule.price));
-  return `From ${lowestPrice}₾`;
+      return `From ${lowestPrice} GEL`;
 };

@@ -255,7 +255,7 @@ const Analytics = () => {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.total_revenue.toFixed(2)}₾</div>
+                <div className="text-2xl font-bold">{stats.total_revenue.toFixed(2)} GEL</div>
                 <p className="text-xs text-muted-foreground">From confirmed bookings</p>
               </CardContent>
             </Card>
@@ -348,7 +348,7 @@ const Analytics = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-semibold">{booking.total_price.toFixed(2)}₾</div>
+                        <div className="font-semibold">{booking.total_price.toFixed(2)} GEL</div>
                       </div>
                     </div>
                   ))}

@@ -121,7 +121,7 @@ const Bookings: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Revenue</p>
-                <p className="text-2xl font-bold text-white">{stats?.totalRevenue || 0}₾</p>
+                <p className="text-2xl font-bold text-white">{stats?.totalRevenue || 0} GEL</p>
               </div>
               <DollarSign className="h-8 w-8 text-green-500" />
             </div>
@@ -216,7 +216,7 @@ const Bookings: React.FC = () => {
                     </div>
                   </TableCell>
                   <TableCell className="text-white font-medium">
-                    {booking.total_price}₾
+                                            {booking.total_price} GEL
                   </TableCell>
                   <TableCell>
                     {getStatusBadge(booking.status)}

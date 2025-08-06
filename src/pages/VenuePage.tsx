@@ -186,10 +186,10 @@ const VenuePage = () => {
                             const prices = services.map(service => {
                               const displayPrice = getServiceDisplayPrice(service);
                               // Extract numeric value from pricing display
-                              const numericMatch = displayPrice.match(/(\d+)₾/);
+                              const numericMatch = displayPrice.match(/(\d+) GEL/);
                               return numericMatch ? parseInt(numericMatch[1]) : service.price;
                             });
-                            return `From ${Math.min(...prices)}₾`;
+                            return `From ${Math.min(...prices)} GEL`;
                           })()
                         : 'Contact'}
                    </span>
@@ -201,7 +201,7 @@ const VenuePage = () => {
                   venuePrice={services && services.length > 0 ? (() => {
                     const prices = services.map(service => {
                       const displayPrice = getServiceDisplayPrice(service);
-                      const numericMatch = displayPrice.match(/(\d+)₾/);
+                      const numericMatch = displayPrice.match(/(\d+) GEL/);
                       return numericMatch ? parseInt(numericMatch[1]) : service.price;
                     });
                     return Math.min(...prices);

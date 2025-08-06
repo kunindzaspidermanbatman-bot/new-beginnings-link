@@ -66,8 +66,8 @@ const VenueMarker = ({ venue, coordinates, onVenueClick, map, isSelected }: {
       // Use the same logic as VenueCard
       const prices = services.map(service => {
         const displayPrice = getServiceDisplayPrice(service);
-        // Extract numeric value from "From X₾" or "X₾/guest" format
-        const numericMatch = displayPrice.match(/(\d+)₾/);
+            // Extract numeric value from "From X GEL" or "X GEL/guest" format
+    const numericMatch = displayPrice.match(/(\d+) GEL/);
         return numericMatch ? parseInt(numericMatch[1]) : service.price;
       });
       return Math.min(...prices);
@@ -90,7 +90,7 @@ const VenueMarker = ({ venue, coordinates, onVenueClick, map, isSelected }: {
 
     // Airbnb-style font and text setup
     ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-    const text = `₾${price}`;
+          const text = `GEL ${price}`;
     const textMetrics = ctx.measureText(text);
     const textWidth = textMetrics.width;
     

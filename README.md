@@ -9,7 +9,7 @@ A modern web application for booking gaming venues, built with React, TypeScript
 The platform features a sophisticated Google Maps implementation that closely resembles Airbnb's map experience:
 
 #### Map Features
-- **Custom Price Markers**: Each venue is represented by a custom-designed marker showing the price in Georgian Lari (₾)
+- **Custom Price Markers**: Each venue is represented by a custom-designed marker showing the price in Georgian Lari (GEL)
 - **Hover Tooltips**: Beautiful Airbnb-style cards appear on hover with venue details
 - **Interactive Popups**: Click markers to see detailed venue information
 - **Smooth Animations**: Hover effects and transitions for a polished user experience

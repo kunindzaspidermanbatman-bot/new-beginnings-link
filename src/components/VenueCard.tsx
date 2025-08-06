@@ -312,10 +312,10 @@ const VenueCard = ({ venue, compact = false, searchMode = false, onHover }: Venu
                   ? (() => {
                       const prices = services.map(service => {
                         const displayPrice = getServiceDisplayPrice(service);
-                        const numericMatch = displayPrice.match(/(\d+)₾/);
+                        const numericMatch = displayPrice.match(/(\d+) GEL/);
                         return numericMatch ? parseInt(numericMatch[1]) : service.price;
                       });
-                      return `${Math.min(...prices)}₾`;
+                      return `${Math.min(...prices)} GEL`;
                     })()
                   : 'Contact'}
               </span>

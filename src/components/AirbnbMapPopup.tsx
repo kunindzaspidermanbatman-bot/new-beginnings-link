@@ -31,7 +31,7 @@ const AirbnbMapPopup = ({ venue, onClose }: AirbnbMapPopupProps) => {
     if (services && services.length > 0) {
       const prices = services.map(service => {
         const displayPrice = getServiceDisplayPrice(service);
-        const numericMatch = displayPrice.match(/(\d+)₾/);
+        const numericMatch = displayPrice.match(/(\d+) GEL/);
         return numericMatch ? parseInt(numericMatch[1]) : service.price;
       });
       return Math.min(...prices);
@@ -152,7 +152,7 @@ const AirbnbMapPopup = ({ venue, onClose }: AirbnbMapPopupProps) => {
         {/* Price */}
         <div className="flex items-baseline justify-between mt-1">
           <div>
-            <span className="text-lg font-bold text-gray-900">₾{price}</span>
+                            <span className="text-lg font-bold text-gray-900">GEL {price}</span>
             <span className="text-gray-500 text-xs ml-1">per hour</span>
           </div>
           {venue.opening_time && venue.closing_time && (

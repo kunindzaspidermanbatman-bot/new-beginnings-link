@@ -649,15 +649,15 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                             <span className="font-bold text-primary">
                               {/* Use the final price if available, otherwise calculate */}
                               {serviceBooking.finalPrice !== undefined 
-                                ? `${serviceBooking.finalPrice.toFixed(2)}₾` 
+                                ? `${serviceBooking.finalPrice.toFixed(2)} GEL` 
                                 : (() => {
-                                    if (!serviceBooking.arrivalTime || !serviceBooking.departureTime) return '0₾';
+                                    if (!serviceBooking.arrivalTime || !serviceBooking.departureTime) return '0 GEL';
                                     const start = new Date(`2000-01-01T${serviceBooking.arrivalTime}:00`);
                                     const end = new Date(`2000-01-01T${serviceBooking.departureTime}:00`);
                                     const diffMs = end.getTime() - start.getTime();
                                     const hours = diffMs / (1000 * 60 * 60);
                                     const guestPrice = calculateGuestPrice(service, formData.guests);
-                                    return guestPrice ? `${(guestPrice * hours).toFixed(2)}₾` : '0₾';
+                                    return guestPrice ? `${(guestPrice * hours).toFixed(2)} GEL` : '0 GEL';
                                   })()
                               }
                             </span>
@@ -667,10 +667,10 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                             <div className="text-xs text-green-600 pt-1">
                               {serviceBooking.originalPrice && (
                                 <span className="line-through text-muted-foreground mr-2">
-                                  {serviceBooking.originalPrice.toFixed(2)}₾
+                                  {serviceBooking.originalPrice.toFixed(2)} GEL
                                 </span>
                               )}
-                              <span>Save {serviceBooking.savings.toFixed(2)}₾</span>
+                              <span>Save {serviceBooking.savings.toFixed(2)} GEL</span>
                               {serviceBooking.appliedDiscounts && serviceBooking.appliedDiscounts.length > 0 && (
                                 <div className="text-xs text-green-600 mt-1">
                                   Applied: {serviceBooking.appliedDiscounts.join(', ')}
@@ -734,7 +734,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
         <div className="max-w-sm lg:max-w-none mx-auto lg:mx-0">
           <div className="flex items-center gap-4">
              <div className="flex-1">
-               <span className="text-4xl font-bold text-primary bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">{totalPrice.toFixed(2)}₾</span>
+               <span className="text-4xl font-bold text-primary bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">{totalPrice.toFixed(2)} GEL</span>
              </div>
             <Button 
               onClick={handleSubmit}

@@ -239,7 +239,7 @@ const PaymentForm = ({ bookingData, onSuccess, onError, disabled, useOneTimeFlow
         ) : (
           <>
             <CreditCard className="w-4 h-4 mr-2" />
-            Pay {bookingData.discountedTotal ? bookingData.discountedTotal.toFixed(2) : bookingData.totalPrice}₾
+            Pay {bookingData.discountedTotal ? bookingData.discountedTotal.toFixed(2) : bookingData.totalPrice} GEL
           </>
         )}
       </Button>
@@ -681,7 +681,7 @@ const ConfirmAndPay = () => {
                           {booking.savings && booking.savings > 0 && (
                             <div className="flex justify-between text-xs text-green-600 mt-1">
                               <span>Discount ({booking.appliedDiscounts?.join(', ')})</span>
-                              <span>-{booking.savings.toFixed(2)}₾</span>
+                              <span>-{booking.savings.toFixed(2)} GEL</span>
                             </div>
                           )}
                         </div>
@@ -692,7 +692,7 @@ const ConfirmAndPay = () => {
                       <span className="text-sm text-muted-foreground">
                         Service booking × {bookingData.guests} guest{bookingData.guests > 1 ? 's' : ''}
                       </span>
-                      <span className="text-sm text-foreground">{discountedTotal.toFixed(2)}₾</span>
+                      <span className="text-sm text-foreground">{discountedTotal.toFixed(2)} GEL</span>
                     </div>
                   )}
                   
@@ -701,11 +701,11 @@ const ConfirmAndPay = () => {
                     <div className="border-t border-border/50 pt-3 space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Original Price</span>
-                        <span className="line-through text-muted-foreground">{bookingData.totalPrice.toFixed(2)}₾</span>
+                        <span className="line-through text-muted-foreground">{bookingData.totalPrice.toFixed(2)} GEL</span>
                       </div>
                       <div className="flex justify-between text-sm text-green-600">
                         <span>Total Savings</span>
-                        <span>-{totalSavings.toFixed(2)}₾</span>
+                        <span>-{totalSavings.toFixed(2)} GEL</span>
                       </div>
                     </div>
                   )}
@@ -713,7 +713,7 @@ const ConfirmAndPay = () => {
                   <div className="border-t border-border/50 pt-3 flex justify-between font-semibold">
                     <span className="text-foreground">Total USD</span>
                     <span className={`text-foreground gradient-text text-lg ${totalSavings > 0 ? 'text-green-600' : ''}`}>
-                      {discountedTotal.toFixed(2)}₾
+                                              {discountedTotal.toFixed(2)} GEL
                     </span>
                   </div>
                 </div>

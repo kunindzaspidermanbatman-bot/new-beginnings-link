@@ -144,7 +144,7 @@ const GoogleVenueMap = ({
     ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`₾${price}`, canvas.width / 2, canvas.height / 2);
+            ctx.fillText(`GEL ${price}`, canvas.width / 2, canvas.height / 2);
 
     return {
       url: canvas.toDataURL(),
@@ -299,7 +299,7 @@ const GoogleVenueMap = ({
             margin-bottom: 12px;
             line-height: 18px;
           ">
-            <span style="font-weight: 600;">₾${price}</span>
+            <span style="font-weight: 600;">GEL ${price}</span>
             <span style="font-weight: 400; color: #717171;"> per hour</span>
           </div>
           

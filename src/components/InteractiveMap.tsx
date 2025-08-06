@@ -181,7 +181,7 @@ const InteractiveMap = ({ venues, onBoundsChange, onVenueClick, selectedVenue, m
                 <div className="relative">
                   <MapPin className="w-8 h-8 text-primary fill-primary drop-shadow-lg" />
                   <div className="absolute -top-2 -right-2 w-6 h-6 bg-secondary text-secondary-foreground rounded-full flex items-center justify-center text-xs font-bold">
-                    {markerServices && markerServices.length > 0 ? Math.min(...markerServices.map(s => s.price)) : '?'}₾
+                    {markerServices && markerServices.length > 0 ? Math.min(...markerServices.map(s => s.price)) : '?'} GEL
                   </div>
                 </div>
               </div>

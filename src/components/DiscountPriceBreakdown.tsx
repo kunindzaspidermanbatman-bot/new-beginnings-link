@@ -63,7 +63,7 @@ const DiscountPriceBreakdown: React.FC<DiscountPriceBreakdownProps> = ({
           <span className="text-sm text-muted-foreground">
             Base Price ({calculation.paidHours} hours)
           </span>
-          <span className="font-medium">{calculation.originalPrice.toFixed(2)}₾</span>
+          <span className="font-medium">{calculation.originalPrice.toFixed(2)} GEL</span>
         </div>
 
         {/* Applied Discounts */}
@@ -79,7 +79,7 @@ const DiscountPriceBreakdown: React.FC<DiscountPriceBreakdownProps> = ({
                     {getDiscountDescription(discount)}
                   </Badge>
                   <span className="text-sm text-green-600">
-                    -{((calculation.originalPrice - calculation.finalPrice) / calculation.appliedDiscounts.length).toFixed(2)}₾
+                    -{((calculation.originalPrice - calculation.finalPrice) / calculation.appliedDiscounts.length).toFixed(2)} GEL
                   </span>
                 </div>
               ))}
@@ -93,7 +93,7 @@ const DiscountPriceBreakdown: React.FC<DiscountPriceBreakdownProps> = ({
             <Separator />
             <div className="flex justify-between items-center text-green-600">
               <span className="text-sm font-medium">Total Savings</span>
-              <span className="font-medium">-{calculation.totalSavings.toFixed(2)}₾</span>
+              <span className="font-medium">-{calculation.totalSavings.toFixed(2)} GEL</span>
             </div>
           </>
         )}
@@ -102,7 +102,7 @@ const DiscountPriceBreakdown: React.FC<DiscountPriceBreakdownProps> = ({
         <Separator />
         <div className="flex justify-between items-center text-lg font-bold">
           <span>Final Total</span>
-          <span className="text-primary">{calculation.finalPrice.toFixed(2)}₾</span>
+                      <span className="text-primary">{calculation.finalPrice.toFixed(2)} GEL</span>
         </div>
 
         {/* Additional Info */}
