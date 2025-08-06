@@ -28,10 +28,11 @@ import { useState, useEffect } from "react";
 interface VenueCardProps {
   venue: Venue;
   compact?: boolean;
+  searchMode?: boolean;
   onHover?: (venue: Venue) => void;
 }
 
-const VenueCard = ({ venue, compact = false, onHover }: VenueCardProps) => {
+const VenueCard = ({ venue, compact = false, searchMode = false, onHover }: VenueCardProps) => {
   const { data: services } = useVenueServices(venue.id);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -189,7 +190,7 @@ const VenueCard = ({ venue, compact = false, onHover }: VenueCardProps) => {
       <Card className="venue-card-new overflow-hidden bg-white border-0 shadow-lg hover:shadow-2xl transition-all duration-500 ease-out">
         {/* Image Carousel Section */}
         <div className="relative">
-          <div className="relative aspect-[4/3] overflow-hidden">
+          <div className={`relative overflow-hidden ${searchMode ? 'aspect-[4/3]' : 'aspect-[8/5]'}`}>
             <img
               src={venueImages[currentImageIndex]}
               alt={`${venue.name} - Image ${currentImageIndex + 1}`}
@@ -201,22 +202,22 @@ const VenueCard = ({ venue, compact = false, onHover }: VenueCardProps) => {
             
             {/* Image Counter */}
             {venueImages.length > 1 && (
-              <div className="absolute top-3 right-3 glass-overlay text-white text-xs px-2 py-1 rounded-full">
+              <div className={`absolute glass-overlay text-white rounded-full ${searchMode ? 'top-1 right-1 text-[8px] px-1 py-0.5' : 'top-2 right-2 text-[10px] px-1.5 py-0.5'}`}>
                 {currentImageIndex + 1} / {venueImages.length}
               </div>
             )}
             
             {/* Carousel Indicators */}
             {venueImages.length > 1 && (
-              <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-1">
+              <div className={`absolute left-1/2 transform -translate-x-1/2 flex ${searchMode ? 'bottom-1 gap-0.5' : 'bottom-2 gap-0.5'}`}>
                 {venueImages.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                      index === currentImageIndex 
-                        ? 'bg-white w-4' 
-                        : 'bg-white/60'
+                    className={`rounded-full transition-all duration-200 ${
+                      searchMode 
+                        ? `w-1 h-1 ${index === currentImageIndex ? 'bg-white w-2' : 'bg-white/60'}`
+                        : `w-1.5 h-1.5 ${index === currentImageIndex ? 'bg-white w-3' : 'bg-white/60'}`
                     }`}
                   />
                 ))}
@@ -228,26 +229,26 @@ const VenueCard = ({ venue, compact = false, onHover }: VenueCardProps) => {
               <>
                 <Button
                   onClick={handlePrevious}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 glass-overlay action-button border-0 p-0"
+                  className={`absolute top-1/2 -translate-y-1/2 glass-overlay action-button border-0 p-0 ${searchMode ? 'left-0.5 h-5 w-5' : 'left-1 h-6 w-6'}`}
                 >
-                  <ArrowLeft className="h-4 w-4" />
+                  <ArrowLeft className={`${searchMode ? 'h-2.5 w-2.5' : 'h-3 w-3'}`} />
                 </Button>
                 <Button
                   onClick={handleNext}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 glass-overlay action-button border-0 p-0"
+                  className={`absolute top-1/2 -translate-y-1/2 glass-overlay action-button border-0 p-0 ${searchMode ? 'right-0.5 h-5 w-5' : 'right-1 h-6 w-6'}`}
                 >
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className={`${searchMode ? 'h-2.5 w-2.5' : 'h-3 w-3'}`} />
                 </Button>
               </>
             )}
             
             {/* Discount Badge */}
             {allDiscounts.length > 0 && (
-              <div className="absolute top-3 left-3">
-                <div className={`bg-gradient-to-r ${allDiscounts[0].color} text-white rounded-full px-3 py-1 shadow-lg flex items-center gap-1 text-xs font-bold badge-animate`}>
+              <div className={`absolute ${searchMode ? 'top-1 left-1' : 'top-2 left-2'}`}>
+                <div className={`bg-gradient-to-r ${allDiscounts[0].color} text-white rounded-full shadow-lg flex items-center gap-1 font-bold badge-animate ${searchMode ? 'px-1.5 py-0.5 text-[8px]' : 'px-2 py-0.5 text-[10px]'}`}>
                   {(() => {
                     const IconComponent = allDiscounts[0].icon;
-                    return <IconComponent className="h-3 w-3 flex-shrink-0" />;
+                    return <IconComponent className={`${searchMode ? 'h-2 w-2' : 'h-2.5 w-2.5'} flex-shrink-0`} />;
                   })()}
                   <span>{allDiscounts[0].text}</span>
                 </div>
@@ -255,58 +256,58 @@ const VenueCard = ({ venue, compact = false, onHover }: VenueCardProps) => {
             )}
             
             {/* Rating Badge */}
-            <div className="absolute bottom-3 left-3">
-              <div className="glass-overlay rounded-full px-2 py-1 shadow-lg flex items-center gap-1">
-                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                <span className="text-xs font-semibold text-white">{venue.rating}</span>
+            <div className={`absolute ${searchMode ? 'bottom-1 left-1' : 'bottom-2 left-2'}`}>
+              <div className={`glass-overlay rounded-full shadow-lg flex items-center gap-1 ${searchMode ? 'px-1 py-0.5' : 'px-1.5 py-0.5'}`}>
+                <Star className={`${searchMode ? 'h-2 w-2' : 'h-2.5 w-2.5'} fill-yellow-400 text-yellow-400`} />
+                <span className={`${searchMode ? 'text-[8px]' : 'text-[10px]'} font-semibold text-white`}>{venue.rating}</span>
               </div>
             </div>
           </div>
         </div>
         
         {/* Content Section */}
-        <CardContent className="p-4 space-y-3">
+        <CardContent className={`${searchMode ? 'p-2 space-y-1.5' : 'p-2 space-y-1'}`}>
           {/* Venue Name and Location */}
-          <div className="space-y-2">
-            <h3 className="font-bold text-lg text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+          <div className={`${searchMode ? 'space-y-0.5' : 'space-y-1'}`}>
+            <h3 className={`font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1 ${searchMode ? 'text-sm' : 'text-sm'}`}>
               {venue.name}
             </h3>
             
             <div className="flex items-center text-gray-500">
-              <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span className="text-sm line-clamp-1">{venue.location}</span>
+              <MapPin className={`${searchMode ? 'h-2.5 w-2.5 mr-0.5' : 'h-3 w-3 mr-1'} flex-shrink-0`} />
+              <span className={`${searchMode ? 'text-[10px]' : 'text-xs'} line-clamp-1`}>{venue.location}</span>
             </div>
           </div>
           
           {/* Services Tags */}
-          <div className="min-h-[24px]">
+          <div className={`${searchMode ? 'min-h-[16px]' : 'min-h-[18px]'}`}>
             {services && services.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {services.slice(0, compact ? 2 : 3).map((service) => (
+              <div className="flex flex-wrap gap-1">
+                {services.slice(0, searchMode ? 1 : (compact ? 2 : 3)).map((service) => (
                   <Badge 
                     key={service.id} 
                     variant="secondary" 
-                    className="text-xs px-2 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                    className={`${searchMode ? 'text-[8px] px-1 py-0.5' : 'text-[9px] px-1 py-0.5'} bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors`}
                   >
                     {service.name}
                   </Badge>
                 ))}
-                {services.length > (compact ? 2 : 3) && (
-                  <Badge variant="outline" className="text-xs px-2 py-1 border-gray-300 text-gray-600">
-                    +{services.length - (compact ? 2 : 3)}
+                {services.length > (searchMode ? 1 : (compact ? 2 : 3)) && (
+                  <Badge variant="outline" className={`${searchMode ? 'text-[8px] px-1 py-0.5' : 'text-[9px] px-1 py-0.5'} border-gray-300 text-gray-600`}>
+                    +{services.length - (searchMode ? 1 : (compact ? 2 : 3))}
                   </Badge>
                 )}
               </div>
             ) : (
-              <span className="text-sm text-gray-400">No services available</span>
+              <span className={`${searchMode ? 'text-[10px]' : 'text-xs'} text-gray-400`}>No services available</span>
             )}
           </div>
         
           {/* Price and CTA Section */}
-          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+          <div className={`flex items-center justify-between border-t border-gray-100 ${searchMode ? 'pt-0.5' : 'pt-1'}`}>
             {/* Price */}
             <div className="flex items-baseline gap-1">
-              <span className="font-bold text-2xl price-display">
+              <span className={`font-bold price-display ${searchMode ? 'text-lg' : 'text-lg'}`}>
                 {services && services.length > 0 
                   ? (() => {
                       const prices = services.map(service => {
@@ -318,16 +319,16 @@ const VenueCard = ({ venue, compact = false, onHover }: VenueCardProps) => {
                     })()
                   : 'Contact'}
               </span>
-              <span className="text-sm text-gray-500">/hour</span>
+              <span className={`${searchMode ? 'text-[10px]' : 'text-[10px]'} text-gray-500`}>/hour</span>
             </div>
             
             {/* View Details Button */}
             <Link to={`/venue/${venue.id}`}>
               <Button 
                 size="sm" 
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-full transition-all duration-200 group-hover:scale-105 shadow-lg hover:shadow-xl"
+                className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full transition-all duration-200 group-hover:scale-105 shadow-lg hover:shadow-xl ${searchMode ? 'px-2 py-1 text-[10px]' : 'px-2 py-0.5 text-[10px]'}`}
               >
-                <Eye className="h-4 w-4 mr-2" />
+                <Eye className={`${searchMode ? 'h-2.5 w-2.5 mr-0.5' : 'h-3 w-3 mr-1'}`} />
                 View Details
               </Button>
             </Link>
