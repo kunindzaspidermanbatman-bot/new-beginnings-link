@@ -1,73 +1,153 @@
-# Welcome to your Lovable project
+# Dajavshne - Gaming Venue Booking Platform
 
-## Project info
+A modern web application for booking gaming venues, built with React, TypeScript, and Supabase.
 
-**URL**: https://lovable.dev/projects/dfedc512-158f-4d8f-ad30-b46307620cec
+## Features
 
-## How can I edit this code?
+### 🗺️ Airbnb-Style Google Maps Integration
 
-There are several ways of editing your application.
+The platform features a sophisticated Google Maps implementation that closely resembles Airbnb's map experience:
 
-**Use Lovable**
+#### Map Features
+- **Custom Price Markers**: Each venue is represented by a custom-designed marker showing the price in Georgian Lari (₾)
+- **Hover Tooltips**: Beautiful Airbnb-style cards appear on hover with venue details
+- **Interactive Popups**: Click markers to see detailed venue information
+- **Smooth Animations**: Hover effects and transitions for a polished user experience
+- **Responsive Design**: Works seamlessly across desktop and mobile devices
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/dfedc512-158f-4d8f-ad30-b46307620cec) and start prompting.
+#### Marker Styling
+- Rounded rectangle markers with price display
+- Dynamic hover states (markers change color on hover)
+- Professional typography matching Airbnb's design
+- Clean white borders and shadows for visibility
 
-Changes made via Lovable will be committed automatically to this repo.
+#### Popup Features
+- **Venue Images**: High-quality venue photos with fallback placeholders
+- **Rating Display**: Star ratings with review counts
+- **Location Info**: District and category information
+- **Pricing**: Clear price display per hour
+- **Action Buttons**: Heart (favorite) and close buttons
+- **View Details**: Direct link to venue page
 
-**Use your preferred IDE**
+#### Technical Implementation
+- **Google Maps API**: Full integration with Google Maps JavaScript API
+- **Custom Icons**: Canvas-generated marker icons for consistent styling
+- **Info Windows**: Custom styled popups with venue cards
+- **Event Handling**: Comprehensive click and hover interactions
+- **Performance Optimized**: Efficient marker management and cleanup
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 🎮 Core Features
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Venue Discovery**: Browse gaming venues with detailed information
+- **Real-time Booking**: Instant booking system with real-time availability
+- **User Authentication**: Secure login and registration
+- **Payment Integration**: Stripe payment processing
+- **Review System**: User reviews and ratings
+- **Admin Panel**: Comprehensive admin interface for venue management
+- **Partner Dashboard**: Dedicated interface for venue owners
 
-Follow these steps:
+## Getting Started
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Prerequisites
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- Node.js (v18 or higher)
+- npm or yarn
+- Supabase account
+- Google Maps API key
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Installation
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/dajavshne-main.git
+cd dajavshne-main
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Set up environment variables:
+```bash
+cp .env.example .env
+```
+
+4. Configure your environment variables:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+VITE_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+```
+
+5. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Google Maps Setup
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Get a Google Maps API key from the [Google Cloud Console](https://console.cloud.google.com/)
+2. Enable the following APIs:
+   - Maps JavaScript API
+   - Places API
+3. Add your API key to the `.env` file
+4. See `GOOGLE_MAPS_SETUP.md` for detailed setup instructions
 
-**Use GitHub Codespaces**
+## Map Components
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### AirbnbStyleMap
+The main map component that provides the Airbnb-like experience:
+- Custom marker icons with price display
+- Hover tooltips with venue information
+- Interactive popups
+- Smooth animations and transitions
 
-## What technologies are used for this project?
+### GoogleMapsWrapper
+Handles Google Maps API loading and initialization:
+- API key management
+- Script loading
+- Error handling
+- Loading states
 
-This project is built with:
+### VenueMapPopup
+Displays detailed venue information in popups:
+- Venue images with carousel support
+- Rating and review information
+- Location and category details
+- Action buttons (favorite, close, view details)
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Usage
 
-## How can I deploy this project?
+```tsx
+import AirbnbStyleMap from './components/AirbnbStyleMap';
 
-Simply open [Lovable](https://lovable.dev/projects/dfedc512-158f-4d8f-ad30-b46307620cec) and click on Share -> Publish.
+function VenueMap() {
+  const venues = [/* your venues data */];
+  
+  return (
+    <AirbnbStyleMap
+      venues={venues}
+      onVenueClick={(venue) => console.log('Venue clicked:', venue)}
+      onBoundsChange={(bounds) => console.log('Map bounds changed:', bounds)}
+    />
+  );
+}
+```
 
-## Can I connect a custom domain to my Lovable project?
+## Contributing
 
-Yes, you can!
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## License
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project is licensed under the MIT License.
+
+## Support
+
+For support, email support@dajavshne.com or create an issue in the repository.
