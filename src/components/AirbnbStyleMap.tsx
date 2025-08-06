@@ -244,6 +244,7 @@ const AirbnbStyleMap = ({
   const boundsChangeTimeout = useRef<NodeJS.Timeout | null>(null);
   const isUserInteracting = useRef(false);
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
+  const userLocationMarkerRef = useRef<google.maps.Marker | null>(null);
   
   const stableCoordinates = useRef<Map<string, { lat: number; lng: number }>>(new Map());
 
@@ -473,14 +474,44 @@ const AirbnbStyleMap = ({
         clearTimeout(boundsChangeTimeout.current);
       }
       setIsMapReady(false);
+      
+      // Cleanup user location marker
+      if (userLocationMarkerRef.current) {
+        userLocationMarkerRef.current.setMap(null);
+        userLocationMarkerRef.current = null;
+      }
     };
   }, [googleMapsApiKey, debouncedBoundsChange, venuesWithCoords]);
 
-  // Handle mapCenter changes - center map on user's location
+  // Handle mapCenter changes - center map on user's location and add user marker
   useEffect(() => {
     if (!map.current || !mapCenter) return;
 
     console.log('AirbnbStyleMap: Centering map on user location:', mapCenter);
+    
+    // Remove existing user location marker if it exists
+    if (userLocationMarkerRef.current) {
+      userLocationMarkerRef.current.setMap(null);
+      userLocationMarkerRef.current = null;
+    }
+    
+    // Create user location marker
+    const newUserMarker = new google.maps.Marker({
+      position: mapCenter,
+      map: map.current,
+      title: 'Your Location',
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 8,
+        fillColor: '#4285F4',
+        fillOpacity: 1,
+        strokeColor: '#FFFFFF',
+        strokeWeight: 2,
+      },
+      zIndex: 1000,
+    });
+    
+    userLocationMarkerRef.current = newUserMarker;
     
     // Smoothly animate to user's location
     map.current.panTo(mapCenter);
@@ -573,6 +604,14 @@ const AirbnbStyleMap = ({
           </div>
         );
       })()}
+      
+      {/* User Location Indicator */}
+      {mapCenter && (
+        <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
+          <div className="w-2 h-2 bg-white rounded-full"></div>
+          Your Location
+        </div>
+      )}
       
       {/* Map attribution */}
       <div className="absolute bottom-2 left-2 text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
