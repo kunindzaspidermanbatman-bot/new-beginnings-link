@@ -265,9 +265,116 @@
   @apply w-3 h-3 text-blue-600 group-hover:translate-x-0.5 transition-transform duration-200;
 }
 
+/* New modern venue card styles */
+.venue-card-new {
+  @apply relative overflow-hidden bg-white border-0 shadow-lg hover:shadow-2xl transition-all duration-500 ease-out transform hover:-translate-y-2;
+  border-radius: 16px;
+}
+
+.venue-card-new:hover {
+  @apply shadow-2xl;
+}
+
+.venue-card-new .carousel {
+  @apply rounded-t-2xl overflow-hidden;
+}
+
+.venue-card-new .carousel-content {
+  @apply rounded-t-2xl;
+}
+
+.venue-card-new .carousel-item {
+  @apply rounded-t-2xl;
+}
+
+.venue-card-new .carousel-previous,
+.venue-card-new .carousel-next {
+  @apply opacity-0 group-hover:opacity-100 transition-opacity duration-300;
+}
+
+.venue-card-new:hover .carousel-previous,
+.venue-card-new:hover .carousel-next {
+  @apply opacity-100;
+}
+
+/* Enhanced carousel indicators */
+.venue-card-new .carousel-indicators {
+  @apply absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-1;
+}
+
+.venue-card-new .carousel-indicator {
+  @apply w-2 h-2 rounded-full bg-white/60 transition-all duration-200;
+}
+
+.venue-card-new .carousel-indicator.active {
+  @apply bg-white w-4;
+}
+
+/* Enhanced button hover effects */
+.venue-card-new .action-button {
+  @apply transition-all duration-200 hover:scale-110 hover:shadow-lg;
+}
+
+/* Enhanced image hover effects */
+.venue-card-new .carousel-item img {
+  @apply transition-all duration-700 ease-out;
+}
+
+.venue-card-new:hover .carousel-item img {
+  @apply scale-105;
+}
+
+/* Enhanced card hover effects */
+.venue-card-new {
+  @apply transition-all duration-500 ease-out;
+}
+
+.venue-card-new:hover {
+  @apply transform -translate-y-2 shadow-2xl;
+}
+
+/* Glass morphism effects */
+.venue-card-new .glass-overlay {
+  @apply backdrop-blur-sm bg-white/10 border border-white/20;
+}
+
+/* Enhanced badge animations */
+.venue-card-new .badge-animate {
+  @apply transition-all duration-300 hover:scale-105;
+}
+
+/* Enhanced price display */
+.venue-card-new .price-display {
+  @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+}
+
 /* Smooth grid animations */
 .venue-grid {
-  @apply grid gap-3;
+  @apply grid gap-6;
+}
+
+/* Enhanced venue grid for new cards */
+.venue-grid-new {
+  @apply grid gap-8;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+@media (min-width: 640px) {
+  .venue-grid-new {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .venue-grid-new {
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .venue-grid-new {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  }
 }
 
 /* Enhanced loading states */
