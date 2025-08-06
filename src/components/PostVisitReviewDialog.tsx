@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useUserBookings } from '@/hooks/useBookings';
-import { useUserReviewForVenue } from '@/hooks/useReviews';
+import { useUserReviewForBooking } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
 import ReviewForm from '@/components/ReviewForm';
 import { isAfter, parse } from 'date-fns';
@@ -19,9 +19,9 @@ export const PostVisitReviewDialog = () => {
     return stored ? new Set(JSON.parse(stored)) : new Set();
   });
 
-  // Check if user has existing review for the current booking's venue
-  const { data: existingReview } = useUserReviewForVenue(
-    currentBookingForReview?.venue_id || ''
+  // Check if user has existing review for the current booking
+  const { data: existingReview } = useUserReviewForBooking(
+    currentBookingForReview?.id || ''
   );
 
   useEffect(() => {
@@ -87,6 +87,17 @@ export const PostVisitReviewDialog = () => {
       setDialogOpen(true);
     }
   }, [bookings, user, dialogOpen, reviewedBookings, ignoredBookings]);
+
+  // If there's an existing review for this booking, don't show the dialog
+  useEffect(() => {
+    if (existingReview && currentBookingForReview) {
+      console.log('PostVisitReviewDialog: Found existing review for booking:', currentBookingForReview.id);
+      setDialogOpen(false);
+      setCurrentBookingForReview(null);
+      // Mark as reviewed so it doesn't show again
+      setReviewedBookings(prev => new Set(prev).add(currentBookingForReview.id));
+    }
+  }, [existingReview, currentBookingForReview]);
 
   const handleCloseDialog = () => {
     if (currentBookingForReview) {

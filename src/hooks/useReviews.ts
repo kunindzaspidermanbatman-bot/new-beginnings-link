@@ -76,6 +76,28 @@ export const useUserReviewForVenue = (venueId: string) => {
   });
 };
 
+export const useUserReviewForBooking = (bookingId: string) => {
+  const { user } = useAuth();
+  
+  return useQuery({
+    queryKey: ['user-review-for-booking', bookingId, user?.id],
+    queryFn: async () => {
+      if (!user?.id || !bookingId) return null;
+      
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('booking_id', bookingId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data as Review | null;
+    },
+    enabled: !!user?.id && !!bookingId,
+  });
+};
+
 // Check if user has completed bookings for this venue (departed)
 export const useUserCompletedBookings = (venueId: string) => {
   const { user } = useAuth();
@@ -198,6 +220,7 @@ export const useCreateReview = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['venue-reviews', data.venue_id] });
       queryClient.invalidateQueries({ queryKey: ['user-review', data.venue_id] });
+      queryClient.invalidateQueries({ queryKey: ['user-review-for-booking', data.booking_id] });
       queryClient.invalidateQueries({ queryKey: ['venues'] });
     },
   });
