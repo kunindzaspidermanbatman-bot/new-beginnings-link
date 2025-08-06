@@ -227,14 +227,14 @@ const SearchResults = () => {
           {(viewMode === 'split' || viewMode === 'list') && (
             <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} overflow-hidden`}>
               <div className="h-full overflow-y-auto pr-4">
-                <div className="grid grid-cols-3 gap-4 p-4">
+                <div className="venue-grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 p-4">
                   {filteredVenues?.map((venue, index) => (
                     <motion.div
                       key={venue.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: (index % 9) * 0.1 }}
-                      className="w-full"
+                      transition={{ duration: 0.3, delay: (index % 12) * 0.05 }}
+                      className="group w-full"
                     >
                       <VenueCard venue={venue} compact onHover={handleVenueHover} />
                     </motion.div>

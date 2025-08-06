@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, MapPin, Percent, Clock, Gift, Users } from "lucide-react";
+import { Star, MapPin, Percent, Clock, Gift, Users, ArrowRight } from "lucide-react";
 import { Venue, useVenueServices } from "@/hooks/useVenues";
 import { getServiceDisplayPrice } from "@/utils/guestPricing";
 
@@ -136,91 +136,109 @@ const VenueCard = ({ venue, compact = false, onHover }: VenueCardProps) => {
   return (
     <Link to={`/venue/${venue.id}`}>
       <Card 
-        className={`hover-lift cursor-pointer group border-border bg-card hover:bg-muted/30 transition-all duration-300 overflow-hidden shadow-sm hover:shadow-md ${compact ? 'h-[280px] w-full' : ''}`}
+        className={`venue-card group ${compact ? 'h-[280px]' : 'h-[320px]'}`}
         onMouseEnter={() => onHover?.(venue)}
       >
-        <div className={`${compact ? 'h-[160px]' : 'aspect-[4/3]'} relative overflow-hidden`}>
+        {/* Image Container */}
+        <div className={`relative overflow-hidden ${compact ? 'h-[140px]' : 'h-[160px]'}`}>
           <img
             src={venue.images?.[0] || "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800"}
             alt={venue.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="venue-card-image"
           />
           
-          {/* Discount Badge - Only show the best one */}
-          {allDiscounts.length > 0 && (
-            <div className="absolute top-2 right-2">
-              <div className={`bg-gradient-to-r ${allDiscounts[0].color} text-white rounded-md px-2 py-1 shadow-lg flex items-center gap-1 text-xs font-semibold`}>
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          
+          {/* Top Badges Container */}
+          <div className="absolute top-2 left-2 right-2 flex justify-between items-start">
+            {/* Rating Badge */}
+            <div className="venue-card-badge flex items-center gap-1">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+              <span className="text-xs font-semibold text-gray-800">{venue.rating}</span>
+            </div>
+            
+            {/* Discount Badge */}
+            {allDiscounts.length > 0 && (
+              <div className={`venue-card-discount bg-gradient-to-r ${allDiscounts[0].color}`}>
                 {(() => {
                   const IconComponent = allDiscounts[0].icon;
                   return <IconComponent className="h-3 w-3 flex-shrink-0" />;
                 })()}
                 <span>{allDiscounts[0].text}</span>
               </div>
-            </div>
-          )}
-
-          {/* Rating Badge */}
-          <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm rounded-md px-2 py-1 shadow-sm">
-            <div className="flex items-center gap-1 text-xs font-medium">
-              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-              <span className="text-foreground">{venue.rating}</span>
-            </div>
+            )}
           </div>
         </div>
         
-        <CardContent className={`${compact ? 'p-2.5' : 'p-3'} space-y-2`}>
-          {/* Venue Name */}
-          <h3 className={`font-semibold ${compact ? 'text-sm' : 'text-base'} text-foreground group-hover:text-primary transition-colors line-clamp-1`}>
-            {venue.name}
-          </h3>
-          
-          {/* Location */}
-          <div className="flex items-center text-muted-foreground">
-            <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-            <span className="text-xs truncate">{venue.location}</span>
+        {/* Content Container */}
+        <CardContent className={`p-3 space-y-1.5 ${compact ? 'h-[140px]' : 'h-[160px]'} flex flex-col justify-between`}>
+          {/* Top Section */}
+          <div className="space-y-1">
+            {/* Venue Name */}
+            <h3 className={`font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1 ${compact ? 'text-sm' : 'text-base'}`}>
+              {venue.name}
+            </h3>
+            
+            {/* Location */}
+            <div className="flex items-center text-gray-500">
+              <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+              <span className="text-xs line-clamp-1">{venue.location}</span>
+            </div>
           </div>
           
-          {/* Services */}
-          <div className="min-h-[20px]">
+          {/* Middle Section - Services */}
+          <div className="min-h-[24px]">
             {services && services.length > 0 ? (
               <div className="flex flex-wrap gap-1">
                 {services.slice(0, compact ? 2 : 3).map((service) => (
-                  <Badge key={service.id} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-5">
-                    {compact && service.name.length > 8 ? service.name.substring(0, 8) + '...' : service.name}
+                  <Badge 
+                    key={service.id} 
+                    variant="secondary" 
+                    className="text-[10px] px-1.5 py-0.5 h-4 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors whitespace-nowrap max-w-full"
+                  >
+                    {service.name}
                   </Badge>
                 ))}
                 {services.length > (compact ? 2 : 3) && (
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 h-5">
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0.5 h-4 border-gray-300 text-gray-600">
                     +{services.length - (compact ? 2 : 3)}
                   </Badge>
                 )}
               </div>
             ) : (
-              <span className="text-xs text-muted-foreground">No services</span>
+              <span className="text-xs text-gray-400">No services available</span>
             )}
           </div>
-          
-          {/* Price */}
-          <div className="flex items-center justify-between pt-1">
-            <div className="text-right ml-auto">
-              <div className="flex items-baseline gap-1">
-                <span className={`font-bold text-foreground ${compact ? 'text-lg' : 'text-xl'}`}>
-                  {services && services.length > 0 
-                    ? (() => {
-                        const prices = services.map(service => {
-                          const displayPrice = getServiceDisplayPrice(service);
-                          const numericMatch = displayPrice.match(/(\d+)₾/);
-                          return numericMatch ? parseInt(numericMatch[1]) : service.price;
-                        });
-                        return `${Math.min(...prices)}₾`;
-                      })()
-                    : 'Contact'}
-                </span>
-                <span className="text-xs text-muted-foreground">per hour</span>
-              </div>
+        
+          {/* Bottom Section - Price and CTA */}
+          <div className="flex items-center justify-between pt-2">
+            {/* Price */}
+            <div className="flex items-baseline gap-1">
+              <span className={`font-bold text-gray-900 ${compact ? 'text-lg' : 'text-xl'}`}>
+                {services && services.length > 0 
+                  ? (() => {
+                      const prices = services.map(service => {
+                        const displayPrice = getServiceDisplayPrice(service);
+                        const numericMatch = displayPrice.match(/(\d+)₾/);
+                        return numericMatch ? parseInt(numericMatch[1]) : service.price;
+                      });
+                      return `${Math.min(...prices)}₾`;
+                    })()
+                  : 'Contact'}
+              </span>
+              <span className="text-xs text-gray-500">/hour</span>
+            </div>
+            
+            {/* CTA Arrow */}
+            <div className="venue-card-cta">
+              <ArrowRight className="venue-card-cta-icon" />
             </div>
           </div>
         </CardContent>
+        
+        {/* Hover Overlay */}
+        <div className="absolute inset-0 bg-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       </Card>
     </Link>
   );

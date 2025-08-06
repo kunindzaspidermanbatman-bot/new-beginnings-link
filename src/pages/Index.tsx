@@ -184,17 +184,17 @@ const Index = () => {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-              {(filteredVenues || venues)?.slice(0, 6).map((venue, index) => (
+            <div className="venue-grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+              {(filteredVenues || venues)?.slice(0, 8).map((venue, index) => (
                 <motion.div
                   key={venue.id}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  transition={{ duration: 0.5, delay: index * 0.08 }}
                   viewport={{ once: true }}
-                  className="hover-lift"
+                  className="group"
                 >
-                  <VenueCard venue={venue} />
+                  <VenueCard venue={venue} compact={true} />
                 </motion.div>
               ))}
             </div>
