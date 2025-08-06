@@ -486,7 +486,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     <div className="relative">
       <Card className="border-0 shadow-none bg-transparent">
         <CardHeader className="px-0 pt-0">
-          <CardTitle className="text-2xl font-bold text-foreground">Book Your Session</CardTitle>
+          <CardTitle className="text-2xl font-bold text-foreground">Book Services</CardTitle>
         </CardHeader>
         <CardContent className="px-0 space-y-8 pb-24">
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -556,7 +556,6 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
             {/* Services Selection */}
             {services.length > 0 && (
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Available Services</h3>
                 {services.map((service) => {
                   const isSelected = formData.serviceIds.includes(service.id);
                   const serviceBooking = formData.serviceBookings.find(sb => sb.serviceId === service.id);
