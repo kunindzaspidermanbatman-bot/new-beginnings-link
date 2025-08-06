@@ -54,6 +54,11 @@ const BookingHistory = () => {
     return format(new Date(dateString), "MMM dd, yyyy");
   };
 
+  const formatTime = (timeString: string) => {
+    // Remove seconds from time format (e.g., "14:30:00" -> "14:30")
+    return timeString.split(':').slice(0, 2).join(':');
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':
@@ -89,54 +94,54 @@ const BookingHistory = () => {
               </Badge>
             </div>
 
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between mb-3">
+            <CardContent className="p-2 space-y-1">
+              <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-foreground text-lg mb-1">
+                  <h4 className="font-bold text-gray-900 text-base mb-1">
                     {booking.venues?.name || 'Venue'}
                   </h4>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
+                  <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
                     <MapPin className="w-3 h-3" />
                     {booking.venues?.location}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-primary text-xl">{booking.total_price} GEL</div>
+                  <div className="font-bold text-primary text-lg">{booking.total_price} GEL</div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 text-sm mb-4">
+              <div className="grid grid-cols-3 gap-2 text-xs mb-3">
                 <div className="flex items-center gap-1">
-                  <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                  <CalendarDays className="w-3 h-3 text-gray-500" />
                   <span className="font-medium">{formatDate(booking.booking_date)}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-medium">{booking.booking_time}</span>
+                  <Clock className="w-3 h-3 text-gray-500" />
+                  <span className="font-medium">{formatTime(booking.booking_time)}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Users className="w-4 h-4 text-muted-foreground" />
+                  <Users className="w-3 h-3 text-gray-500" />
                   <span className="font-medium">{booking.guest_count} guest{booking.guest_count > 1 ? 's' : ''}</span>
                 </div>
               </div>
 
               {booking.venue_services && (
-                <div className="mb-4 p-3 bg-muted/30 rounded-lg">
-                  <div className="text-sm font-medium text-foreground">
+                <div className="mb-3 p-2 bg-gray-50 rounded-lg">
+                  <div className="text-xs font-medium text-gray-900">
                     Service: {booking.venue_services.name}
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-[10px] text-gray-500">
                     Type: {booking.venue_services.service_type}
                   </div>
                 </div>
               )}
 
               {booking.special_requests && (
-                <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                  <div className="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-1">
+                <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="text-xs font-medium text-yellow-800 mb-1">
                     Special Requests:
                   </div>
-                  <div className="text-sm text-yellow-700 dark:text-yellow-300">
+                  <div className="text-[10px] text-yellow-700">
                     {booking.special_requests}
                   </div>
                 </div>
@@ -151,15 +156,6 @@ const BookingHistory = () => {
                 >
                   Book Again
                 </Button>
-                {booking.status === 'confirmed' && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => navigate(`/venue/${booking.venue_id}`)}
-                  >
-                    View Details
-                  </Button>
-                )}
               </div>
             </CardContent>
           </Card>
