@@ -216,6 +216,7 @@ export type Database = {
       }
       reviews: {
         Row: {
+          booking_id: string | null
           comment: string | null
           created_at: string
           id: string
@@ -225,6 +226,7 @@ export type Database = {
           venue_id: string
         }
         Insert: {
+          booking_id?: string | null
           comment?: string | null
           created_at?: string
           id?: string
@@ -234,6 +236,7 @@ export type Database = {
           venue_id: string
         }
         Update: {
+          booking_id?: string | null
           comment?: string | null
           created_at?: string
           id?: string
@@ -243,6 +246,13 @@ export type Database = {
           venue_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reviews_venue_id_fkey"
             columns: ["venue_id"]
