@@ -19,6 +19,7 @@ import { Link } from "react-router-dom";
 import { useVenue, useVenueServices, VenueService } from "@/hooks/useVenues";
 import BookingForm from "@/components/BookingForm";
 import ServiceDiscountBanner from "@/components/ServiceDiscountBanner";
+import ReviewsList from "@/components/ReviewsList";
 import { getServiceDisplayPrice } from "@/utils/guestPricing";
 import { useState } from "react";
 
@@ -141,8 +142,32 @@ const VenuePage = () => {
                 </Carousel>
               </div>
 
+              {/* Venue Description */}
+              {venue.description && (
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold text-foreground">About this venue</h2>
+                  <p className="text-muted-foreground leading-relaxed">{venue.description}</p>
+                </div>
+              )}
 
+              {/* Amenities */}
+              {venue.amenities && venue.amenities.length > 0 && (
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold text-foreground">What this place offers</h2>
+                  <div className="grid grid-cols-2 gap-2">
+                    {venue.amenities.map((amenity, index) => (
+                      <div key={index} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
+                        <span className="text-sm">{amenity}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
+              {/* Reviews Section */}
+              <div className="space-y-4">
+                <ReviewsList venueId={venue.id} />
+              </div>
 
             </div>
           </div>

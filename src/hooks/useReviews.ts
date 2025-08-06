@@ -76,7 +76,7 @@ export const useUserReviewForVenue = (venueId: string) => {
   });
 };
 
-// Check if user has completed bookings for this venue
+// Check if user has completed bookings for this venue (departed)
 export const useUserCompletedBookings = (venueId: string) => {
   const { user } = useAuth();
   
@@ -86,16 +86,90 @@ export const useUserCompletedBookings = (venueId: string) => {
       if (!user?.id) return [];
       
       const now = new Date();
+      
+      // Get bookings with their services to check departure times
       const { data, error } = await supabase
         .from('bookings')
-        .select('*')
+        .select(`
+          *,
+          booking_services (
+            departure_time,
+            arrival_time
+          )
+        `)
         .eq('venue_id', venueId)
         .eq('user_id', user.id)
-        .eq('status', 'confirmed')
-        .lt('booking_date', now.toISOString().split('T')[0]);
+        .eq('status', 'confirmed');
 
       if (error) throw error;
-      return data || [];
+      
+      // Filter bookings where departure time has passed
+      const completedBookings = (data || []).filter(booking => {
+        const bookingDate = new Date(booking.booking_date);
+        
+        // If booking has services with departure times, use those
+        if (booking.booking_services && booking.booking_services.length > 0) {
+          return booking.booking_services.some((service: any) => {
+            const departureDateTime = new Date(`${booking.booking_date}T${service.departure_time}`);
+            return departureDateTime < now;
+          });
+        }
+        
+        // Fallback: check if booking date has passed
+        return bookingDate < now;
+      });
+      
+      return completedBookings;
+    },
+    enabled: !!user?.id,
+  });
+};
+
+// Get all user completed bookings across all venues for review reminders
+export const useAllUserCompletedBookings = () => {
+  const { user } = useAuth();
+  
+  return useQuery({
+    queryKey: ['all-completed-bookings', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const now = new Date();
+      
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          venues (
+            id,
+            name,
+            images
+          ),
+          booking_services (
+            departure_time,
+            arrival_time
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'confirmed');
+
+      if (error) throw error;
+      
+      // Filter bookings where departure time has passed
+      const completedBookings = (data || []).filter(booking => {
+        const bookingDate = new Date(booking.booking_date);
+        
+        if (booking.booking_services && booking.booking_services.length > 0) {
+          return booking.booking_services.some((service: any) => {
+            const departureDateTime = new Date(`${booking.booking_date}T${service.departure_time}`);
+            return departureDateTime < now;
+          });
+        }
+        
+        return bookingDate < now;
+      });
+      
+      return completedBookings;
     },
     enabled: !!user?.id,
   });
