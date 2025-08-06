@@ -269,7 +269,7 @@ const VenueCard = ({ venue, compact = false, searchMode = false, onHover }: Venu
         <CardContent className={`${searchMode ? 'p-2 space-y-1.5' : 'p-2 space-y-1'}`}>
           {/* Venue Name and Location */}
           <div className={`${searchMode ? 'space-y-0.5' : 'space-y-1'}`}>
-            <h3 className={`font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1 ${searchMode ? 'text-sm' : 'text-sm'}`}>
+            <h3 className={`font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1 ${searchMode ? 'text-sm' : 'text-base'}`}>
               {venue.name}
             </h3>
             
@@ -287,13 +287,13 @@ const VenueCard = ({ venue, compact = false, searchMode = false, onHover }: Venu
                   <Badge 
                     key={service.id} 
                     variant="secondary" 
-                    className={`${searchMode ? 'text-[8px] px-1 py-0.5' : 'text-[9px] px-1 py-0.5'} bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors`}
+                    className={`${searchMode ? 'text-[8px] px-1 py-0.5' : 'text-[10px] px-1.5 py-0.5'} bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors`}
                   >
                     {service.name}
                   </Badge>
                 ))}
                 {services.length > (searchMode ? 1 : (compact ? 2 : 3)) && (
-                  <Badge variant="outline" className={`${searchMode ? 'text-[8px] px-1 py-0.5' : 'text-[9px] px-1 py-0.5'} border-gray-300 text-gray-600`}>
+                  <Badge variant="outline" className={`${searchMode ? 'text-[8px] px-1 py-0.5' : 'text-[10px] px-1.5 py-0.5'} border-gray-300 text-gray-600`}>
                     +{services.length - (searchMode ? 1 : (compact ? 2 : 3))}
                   </Badge>
                 )}
@@ -319,14 +319,14 @@ const VenueCard = ({ venue, compact = false, searchMode = false, onHover }: Venu
                     })()
                   : 'Contact'}
               </span>
-              <span className={`${searchMode ? 'text-[10px]' : 'text-[10px]'} text-gray-500`}>/hour</span>
+              <span className={`${searchMode ? 'text-[10px]' : 'text-xs'} text-gray-500`}>/hour</span>
             </div>
             
             {/* View Details Button */}
             <Link to={`/venue/${venue.id}`}>
               <Button 
                 size="sm" 
-                className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full transition-all duration-200 group-hover:scale-105 shadow-lg hover:shadow-xl ${searchMode ? 'px-2 py-1 text-[10px]' : 'px-2 py-0.5 text-[10px]'}`}
+                className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full transition-all duration-200 group-hover:scale-105 shadow-lg hover:shadow-xl ${searchMode ? 'px-2 py-1 text-[10px]' : 'px-2.5 py-1 text-xs'}`}
               >
                 <Eye className={`${searchMode ? 'h-2.5 w-2.5 mr-0.5' : 'h-3 w-3 mr-1'}`} />
                 View Details
