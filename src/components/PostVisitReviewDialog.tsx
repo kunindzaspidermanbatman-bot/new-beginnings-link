@@ -13,7 +13,11 @@ export const PostVisitReviewDialog = () => {
   const { data: bookings } = useUserBookings();
   const [currentBookingForReview, setCurrentBookingForReview] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [reviewedBookings, setReviewedBookings] = useState<Set<string>>(new Set());
+  const [reviewedBookings, setReviewedBookings] = useState<Set<string>>(() => {
+    // Load dismissed bookings from localStorage - these won't show popup again
+    const stored = localStorage.getItem('dismissedReviewBookings');
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  });
   const [ignoredBookings, setIgnoredBookings] = useState<Set<string>>(() => {
     // Load ignored bookings from localStorage
     const stored = localStorage.getItem('ignoredReviewBookings');
@@ -39,9 +43,9 @@ export const PostVisitReviewDialog = () => {
       for (const booking of bookings) {
         console.log('PostVisitReviewDialog: Checking booking:', booking.id, 'Status:', booking.status, 'Date:', booking.booking_date, 'Time:', booking.booking_time);
         
-        // Skip if we already showed review dialog for this booking
+        // Skip if we already showed review dialog for this booking (dismissed)
         if (reviewedBookings.has(booking.id)) {
-          console.log('PostVisitReviewDialog: Already reviewed:', booking.id);
+          console.log('PostVisitReviewDialog: Already dismissed popup for:', booking.id);
           continue;
         }
         
@@ -86,8 +90,12 @@ export const PostVisitReviewDialog = () => {
           
           if (existingReviewForBooking) {
             console.log('PostVisitReviewDialog: Found existing review for booking:', booking.id);
-            // Mark as reviewed so it doesn't show again
-            setReviewedBookings(prev => new Set(prev).add(booking.id));
+            // Mark as dismissed so popup doesn't show again
+            setReviewedBookings(prev => {
+              const newSet = new Set(prev).add(booking.id);
+              localStorage.setItem('dismissedReviewBookings', JSON.stringify([...newSet]));
+              return newSet;
+            });
             continue;
           }
           
@@ -114,8 +122,14 @@ export const PostVisitReviewDialog = () => {
 
   const handleCloseDialog = () => {
     if (currentBookingForReview) {
-      // Mark this booking as having been shown the review dialog
-      setReviewedBookings(prev => new Set(prev).add(currentBookingForReview.id));
+      // Mark this booking as having been shown the review dialog (dismissed)
+      const newReviewedBookings = new Set(reviewedBookings).add(currentBookingForReview.id);
+      setReviewedBookings(newReviewedBookings);
+      
+      // Save to localStorage so it persists across sessions
+      localStorage.setItem('dismissedReviewBookings', JSON.stringify([...newReviewedBookings]));
+      
+      console.log('PostVisitReviewDialog: Dismissed popup for booking:', currentBookingForReview.id);
     }
     setDialogOpen(false);
     setCurrentBookingForReview(null);
@@ -137,6 +151,7 @@ export const PostVisitReviewDialog = () => {
   };
 
   const handleReviewSuccess = () => {
+    // When review is submitted, also mark as dismissed
     handleCloseDialog();
   };
 
