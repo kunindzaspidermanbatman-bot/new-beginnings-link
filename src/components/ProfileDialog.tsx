@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import {
@@ -46,23 +46,29 @@ const ProfileDialog = ({ children, defaultTab = "profile", open: controlledOpen,
 
   // Use controlled or internal open state
   const isOpen = controlledOpen !== undefined ? controlledOpen : open;
-  const handleOpenChange = (isOpen: boolean) => {
-    if (onOpenChange) {
-      onOpenChange(isOpen);
-    } else {
-      setOpen(isOpen);
-    }
-    if (isOpen && profile) {
+
+  // Initialize form data when profile is loaded
+  useEffect(() => {
+    if (profile) {
       setFormData({
         full_name: profile.full_name || "",
         email: profile.email || "",
         password: "",
         confirmPassword: "",
       });
-      // Set tab when opening
-      if (defaultTab) {
-        setActiveTab(defaultTab);
-      }
+    }
+  }, [profile]);
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(isOpen);
+    } else {
+      setOpen(isOpen);
+    }
+    
+    // Set tab when opening
+    if (isOpen && defaultTab) {
+      setActiveTab(defaultTab);
     }
   };
 
@@ -116,76 +122,6 @@ const ProfileDialog = ({ children, defaultTab = "profile", open: controlledOpen,
 
   if (!user) return null;
 
-  const ProfileForm = () => (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="full_name" className="text-sm font-medium">Full Name</Label>
-          <Input
-            id="full_name"
-            value={formData.full_name}
-            onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
-            placeholder="Enter your full name"
-            className="h-12"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
-            <Mail className="h-4 w-4" />
-            Email
-          </Label>
-          <Input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-            placeholder="Enter your email"
-            className="h-12"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password" className="text-sm font-medium flex items-center gap-2">
-            <Lock className="h-4 w-4" />
-            New Password (optional)
-          </Label>
-          <Input
-            id="password"
-            type="password"
-            value={formData.password}
-            onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-            placeholder="Enter new password"
-            className="h-12"
-          />
-        </div>
-        {formData.password && (
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm New Password</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-              placeholder="Confirm new password"
-              className="h-12"
-            />
-          </div>
-        )}
-      </div>
-      <div className="flex justify-end gap-3 pt-4">
-        <Button variant="outline" onClick={() => handleOpenChange(false)} className="px-8 h-11">
-          Cancel
-        </Button>
-        <Button 
-          onClick={handleUpdateProfile}
-          disabled={updateProfile.isPending}
-          className="px-8 h-11"
-        >
-          {updateProfile.isPending ? "Updating..." : "Update Profile"}
-        </Button>
-      </div>
-    </div>
-  );
-
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -222,7 +158,73 @@ const ProfileDialog = ({ children, defaultTab = "profile", open: controlledOpen,
             </TabsList>
             
             <TabsContent value="profile" className="mt-6">
-              <ProfileForm />
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="full_name" className="text-sm font-medium">Full Name</Label>
+                    <Input
+                      id="full_name"
+                      value={formData.full_name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                      placeholder="Enter your full name"
+                      className="h-12"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="Enter your email"
+                      className="h-12"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm font-medium flex items-center gap-2">
+                      <Lock className="h-4 w-4" />
+                      New Password (optional)
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                      placeholder="Enter new password"
+                      className="h-12"
+                    />
+                  </div>
+                  {formData.password && (
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm New Password</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        value={formData.confirmPassword}
+                        onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        placeholder="Confirm new password"
+                        className="h-12"
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button variant="outline" onClick={() => handleOpenChange(false)} className="px-8 h-11">
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleUpdateProfile}
+                    disabled={updateProfile.isPending}
+                    className="px-8 h-11"
+                  >
+                    {updateProfile.isPending ? "Updating..." : "Update Profile"}
+                  </Button>
+                </div>
+              </div>
             </TabsContent>
             
             <TabsContent value="payments" className="mt-4">
@@ -238,7 +240,73 @@ const ProfileDialog = ({ children, defaultTab = "profile", open: controlledOpen,
                 <SavedPaymentMethods />
               </Elements>
             ) : (
-              <ProfileForm />
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="full_name" className="text-sm font-medium">Full Name</Label>
+                    <Input
+                      id="full_name"
+                      value={formData.full_name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                      placeholder="Enter your full name"
+                      className="h-12"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="Enter your email"
+                      className="h-12"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm font-medium flex items-center gap-2">
+                      <Lock className="h-4 w-4" />
+                      New Password (optional)
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                      placeholder="Enter new password"
+                      className="h-12"
+                    />
+                  </div>
+                  {formData.password && (
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm New Password</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        value={formData.confirmPassword}
+                        onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        placeholder="Confirm new password"
+                        className="h-12"
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button variant="outline" onClick={() => handleOpenChange(false)} className="px-8 h-11">
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleUpdateProfile}
+                    disabled={updateProfile.isPending}
+                    className="px-8 h-11"
+                  >
+                    {updateProfile.isPending ? "Updating..." : "Update Profile"}
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
         )}

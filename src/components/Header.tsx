@@ -18,7 +18,7 @@ import {
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
-  const [profileDialogTab, setProfileDialogTab] = useState("profile");
+  const [paymentsDialogOpen, setPaymentsDialogOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const { user, signOut } = useAuth();
@@ -176,12 +176,9 @@ const Header = () => {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild>
                       <ProfileDialog 
-                        defaultTab={profileDialogTab}
+                        defaultTab="profile"
                         open={profileDialogOpen}
-                        onOpenChange={(open) => {
-                          setProfileDialogOpen(open);
-                          if (!open) setProfileDialogTab("profile");
-                        }}
+                        onOpenChange={setProfileDialogOpen}
                         showPaymentsTab={false}
                       >
                         <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
@@ -199,16 +196,8 @@ const Header = () => {
                     <DropdownMenuItem asChild>
                       <ProfileDialog
                         defaultTab="payments"
-                        open={profileDialogOpen && profileDialogTab === "payments"}
-                        onOpenChange={(open) => {
-                          if (open) {
-                            setProfileDialogOpen(true);
-                            setProfileDialogTab("payments");
-                          } else {
-                            setProfileDialogOpen(false);
-                            setProfileDialogTab("profile");
-                          }
-                        }}
+                        open={paymentsDialogOpen}
+                        onOpenChange={setPaymentsDialogOpen}
                         showPaymentsTab={false}
                       >
                         <button className="w-full flex items-center gap-2 px-2 py-1.5 text-sm">
@@ -285,12 +274,9 @@ const Header = () => {
                       <NotificationBell />
                     </div>
                     <ProfileDialog 
-                      defaultTab={profileDialogTab}
+                      defaultTab="profile"
                       open={profileDialogOpen}
-                      onOpenChange={(open) => {
-                        setProfileDialogOpen(open);
-                        if (!open) setProfileDialogTab("profile");
-                      }}
+                      onOpenChange={setProfileDialogOpen}
                     >
                       <Button variant="ghost" className="justify-start">
                         <User className="h-4 w-4 mr-2" />
@@ -299,16 +285,8 @@ const Header = () => {
                     </ProfileDialog>
                     <ProfileDialog 
                       defaultTab="payments"
-                      open={profileDialogOpen && profileDialogTab === "payments"}
-                      onOpenChange={(open) => {
-                        if (open) {
-                          setProfileDialogOpen(true);
-                          setProfileDialogTab("payments");
-                        } else {
-                          setProfileDialogOpen(false);
-                          setProfileDialogTab("profile");
-                        }
-                      }}
+                      open={paymentsDialogOpen}
+                      onOpenChange={setPaymentsDialogOpen}
                       showPaymentsTab={false}
                     >
                       <Button variant="ghost" className="justify-start w-full">
