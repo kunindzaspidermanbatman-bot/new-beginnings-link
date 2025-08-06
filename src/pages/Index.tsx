@@ -78,14 +78,12 @@ const Index = () => {
       console.log('After category filter:', filtered.length, 'venues', 'Categories:', filters.category);
     }
 
-    // Apply location filter (OR logic within locations)
+    // Apply location filter (OR logic within locations) - search by district only
     if (filters.location && filters.location.length > 0) {
       filtered = filtered.filter(venue => 
         filters.location.some((location: string) => {
-          // Check both district and location fields for matches
-          const districtMatch = venue.district && venue.district.toLowerCase().includes(location.toLowerCase());
-          const locationMatch = venue.location.toLowerCase().includes(location.toLowerCase());
-          return districtMatch || locationMatch;
+          // Only check district field for matches
+          return venue.district && venue.district.toLowerCase().includes(location.toLowerCase());
         })
       );
       console.log('After location filter:', filtered.length, 'venues', 'Locations:', filters.location);
