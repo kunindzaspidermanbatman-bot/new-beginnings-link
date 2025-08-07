@@ -25,6 +25,7 @@ import { ServiceImageUpload } from '@/components/ServiceImageUpload';
 import ServiceDiscountConfig from '@/components/ServiceDiscountConfig';
 import VenueDiscountConfig from '@/components/VenueDiscountConfig';
 import LocationPicker from '@/components/LocationPicker';
+import { GuestPricingManager } from '@/components/GuestPricingManager';
 
 
 import { PageLoading } from '@/components/ui/loading';
@@ -786,6 +787,12 @@ const EditVenue = () => {
                             Maximum number of tables customers can book for this service
                           </p>
                         </div>
+
+                        {/* Guest Pricing */}
+                        <GuestPricingManager
+                          rules={service.guest_pricing_rules}
+                          onRulesChange={(rules) => updateService(index, 'guest_pricing_rules', rules)}
+                        />
                     </CardContent>
                   </Card>
                 ))
