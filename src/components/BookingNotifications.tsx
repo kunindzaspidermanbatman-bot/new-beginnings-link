@@ -454,22 +454,12 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
     const tables = getTableConfigurations(booking);
     console.log('🔍 getTotalTables - all tables:', tables);
     
-    // Count distinct table numbers
-    const uniqueTableNumbers = new Set(
-      tables.map(table => {
-        console.log('🔍 Processing table:', table, 'table_number:', table.table_number);
-        return table.table_number;
-      }).filter(num => {
-        const isValid = num !== undefined;
-        console.log('🔍 Table number filter:', num, 'isValid:', isValid);
-        return isValid;
-      })
-    );
+    // Simply count the total number of tables (which equals numberOfTables from ServiceBookingDialog)
+    const totalTables = tables.length;
     
-    console.log('📊 Unique table numbers:', Array.from(uniqueTableNumbers));
-    console.log('📊 Total table count:', uniqueTableNumbers.size);
+    console.log('📊 Total table count:', totalTables);
     
-    return uniqueTableNumbers.size;
+    return totalTables;
   };
 
   return (
