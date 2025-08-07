@@ -93,9 +93,9 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         .from('bookings')
         .select(`
           *,
-          venues(name, partner_id),
+          venues!inner(name, partner_id),
           venue_services(name),
-          booking_services(
+          booking_services!inner(
             id,
             service_id,
             arrival_time,
@@ -106,6 +106,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
           )
         `)
         .eq('status', 'pending')
+        .eq('venues.partner_id', profile.id)
         .order('created_at', { ascending: false });
 
       console.log('📊 Raw booking query result:', { 
