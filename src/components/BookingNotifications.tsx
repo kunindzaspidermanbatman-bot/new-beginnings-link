@@ -95,7 +95,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
           *,
           venues!inner(name, partner_id),
           venue_services(name),
-          booking_services!inner(
+          booking_services(
             id,
             service_id,
             arrival_time,
@@ -120,7 +120,8 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         console.log(`🔍 Booking ${index + 1}:`, {
           id: booking.id,
           booking_services: booking.booking_services,
-          booking_services_count: booking.booking_services?.length || 0
+          booking_services_count: booking.booking_services?.length || 0,
+          venues: booking.venues
         });
         
         booking.booking_services?.forEach((service, serviceIndex) => {
@@ -133,7 +134,10 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         });
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Booking query error:', error);
+        throw error;
+      }
 
       // Filter bookings that belong to this partner
       const partnerBookings = data?.filter(booking => {
