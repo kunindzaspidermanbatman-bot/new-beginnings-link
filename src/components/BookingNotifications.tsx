@@ -406,18 +406,32 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
   };
 
   const getTableConfigurations = (booking: PendingBooking) => {
+    console.log('🔍 getTableConfigurations called with booking:', {
+      bookingId: booking.id,
+      booking_services: booking.booking_services,
+      booking_services_length: booking.booking_services?.length
+    });
+    
     if (!booking.booking_services || booking.booking_services.length === 0) {
+      console.log('❌ No booking_services found');
       return [];
     }
     
     const allTables = [];
-    booking.booking_services.forEach(service => {
+    booking.booking_services.forEach((service, index) => {
+      console.log(`🔍 Processing service ${index}:`, {
+        serviceId: service.id,
+        table_configurations: service.table_configurations,
+        table_configurations_type: typeof service.table_configurations
+      });
+      
       let tableConfigs = service.table_configurations;
       
       // Handle different data formats
       if (typeof tableConfigs === 'string') {
         try {
           tableConfigs = JSON.parse(tableConfigs);
+          console.log(`✅ Parsed string table_configurations for service ${index}:`, tableConfigs);
         } catch (e) {
           console.error('Error parsing table configurations:', e);
           tableConfigs = [];
@@ -425,19 +439,36 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
       }
       
       if (Array.isArray(tableConfigs) && tableConfigs.length > 0) {
+        console.log(`✅ Adding ${tableConfigs.length} tables from service ${index}:`, tableConfigs);
         allTables.push(...tableConfigs);
+      } else {
+        console.log(`❌ No valid table configurations for service ${index}`);
       }
     });
     
+    console.log('📊 All tables found:', allTables);
     return allTables;
   };
 
   const getTotalTables = (booking: PendingBooking) => {
     const tables = getTableConfigurations(booking);
+    console.log('🔍 getTotalTables - all tables:', tables);
+    
     // Count distinct table numbers
     const uniqueTableNumbers = new Set(
-      tables.map(table => table.table_number).filter(num => num !== undefined)
+      tables.map(table => {
+        console.log('🔍 Processing table:', table, 'table_number:', table.table_number);
+        return table.table_number;
+      }).filter(num => {
+        const isValid = num !== undefined;
+        console.log('🔍 Table number filter:', num, 'isValid:', isValid);
+        return isValid;
+      })
     );
+    
+    console.log('📊 Unique table numbers:', Array.from(uniqueTableNumbers));
+    console.log('📊 Total table count:', uniqueTableNumbers.size);
+    
     return uniqueTableNumbers.size;
   };
 
