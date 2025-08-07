@@ -176,6 +176,7 @@ serve(async (req) => {
           duration_hours: durationHours,
           subtotal: subtotal,
           selected_games: serviceBooking.selectedGames || [],
+          table_configurations: serviceBooking.tableConfigurations || [],
         };
       });
 

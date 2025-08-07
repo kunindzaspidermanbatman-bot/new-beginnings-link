@@ -407,23 +407,17 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
 
   const getTableConfigurations = (booking: PendingBooking) => {
     if (!booking.booking_services || booking.booking_services.length === 0) {
-      console.log('No booking services found for booking:', booking.id);
       return [];
     }
     
-    console.log('Processing table configurations for booking:', booking.id, booking.booking_services);
-    
     const allTables = [];
-    booking.booking_services.forEach((service, index) => {
+    booking.booking_services.forEach(service => {
       let tableConfigs = service.table_configurations;
-      
-      console.log(`Service ${index} table_configurations (raw):`, tableConfigs, typeof tableConfigs);
       
       // Handle different data formats
       if (typeof tableConfigs === 'string') {
         try {
           tableConfigs = JSON.parse(tableConfigs);
-          console.log(`Service ${index} table_configurations (parsed):`, tableConfigs);
         } catch (e) {
           console.error('Error parsing table configurations:', e);
           tableConfigs = [];
@@ -431,21 +425,15 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
       }
       
       if (Array.isArray(tableConfigs) && tableConfigs.length > 0) {
-        console.log(`Adding ${tableConfigs.length} tables from service ${index}:`, tableConfigs);
         allTables.push(...tableConfigs);
-      } else {
-        console.log(`Service ${index} has no valid table configurations`);
       }
     });
     
-    console.log('Final table configurations:', allTables);
     return allTables;
   };
 
   const getTotalTables = (booking: PendingBooking) => {
-    const tables = getTableConfigurations(booking);
-    console.log('Total tables for booking:', booking.id, tables.length);
-    return tables.length;
+    return getTableConfigurations(booking).length;
   };
 
   return (
