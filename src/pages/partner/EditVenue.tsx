@@ -21,7 +21,7 @@ import PartnerLayout from '@/components/PartnerLayout';
 
 import VenueImageUpload from '@/components/VenueImageUpload';
 import { ServiceImageUpload } from '@/components/ServiceImageUpload';
-import { GuestPricingRules, GuestPricingRule } from '@/components/GuestPricingRules';
+
 import ServiceDiscountConfig from '@/components/ServiceDiscountConfig';
 import VenueDiscountConfig from '@/components/VenueDiscountConfig';
 import LocationPicker from '@/components/LocationPicker';
@@ -160,20 +160,21 @@ const EditVenue = () => {
 
       if (servicesError) throw servicesError;
 
-      const mappedServices = servicesData?.map(service => ({
-        id: service.id,
-        service_type: (service as any).service_type || 'PC Gaming',
-        price: service.price,
-        images: service.images || [],
-        service_games: (service as any).service_games || [],
-        guest_pricing_rules: Array.isArray((service as any).guest_pricing_rules) 
-          ? (service as any).guest_pricing_rules as Array<{ maxGuests: number; price: number }>
-          : [],
-        overall_discount_percent: (service as any).overall_discount_percent || 0,
-        free_hour_discounts: (service as any).free_hour_discounts || [],
-        group_discounts: (service as any).group_discounts || [],
-        timeslot_discounts: (service as any).timeslot_discounts || []
-      })) || [];
+       const mappedServices = servicesData?.map(service => ({
+         id: service.id,
+         service_type: (service as any).service_type || 'PC Gaming',
+         price: service.price,
+         images: service.images || [],
+         service_games: (service as any).service_games || [],
+         guest_pricing_rules: Array.isArray((service as any).guest_pricing_rules) 
+           ? (service as any).guest_pricing_rules as Array<{ maxGuests: number; price: number }>
+           : [],
+         max_tables: (service as any).max_tables || 1,
+         overall_discount_percent: (service as any).overall_discount_percent || 0,
+         free_hour_discounts: (service as any).free_hour_discounts || [],
+         group_discounts: (service as any).group_discounts || [],
+         timeslot_discounts: (service as any).timeslot_discounts || []
+       })) || [];
 
       setServices(mappedServices);
 
@@ -323,18 +324,19 @@ const EditVenue = () => {
           // Update existing service
           const { error: updateError } = await supabase
             .from('venue_services')
-            .update({
-              name: service.service_type,
-              price: service.price,
-              images: service.images,
-              service_type: service.service_type,
-              service_games: service.service_games || [],
-              guest_pricing_rules: service.guest_pricing_rules || [],
-              overall_discount_percent: serviceOverallDiscount,
-              free_hour_discounts: serviceFreeHourDiscounts,
-              group_discounts: serviceGroupDiscounts,
-              timeslot_discounts: serviceTimeslotDiscounts
-            } as any)
+             .update({
+               name: service.service_type,
+               price: service.price,
+               images: service.images,
+               service_type: service.service_type,
+               service_games: service.service_games || [],
+               guest_pricing_rules: service.guest_pricing_rules || [],
+               max_tables: service.max_tables || 1,
+               overall_discount_percent: serviceOverallDiscount,
+               free_hour_discounts: serviceFreeHourDiscounts,
+               group_discounts: serviceGroupDiscounts,
+               timeslot_discounts: serviceTimeslotDiscounts
+             } as any)
             .eq('id', service.id);
 
           if (updateError) throw updateError;
@@ -342,19 +344,20 @@ const EditVenue = () => {
           // Create new service
           const { error: insertError } = await supabase
             .from('venue_services')
-            .insert({
-              venue_id: venueId,
-              name: service.service_type,
-              price: service.price,
-              images: service.images,
-              service_type: service.service_type,
-              service_games: service.service_games || [],
-              guest_pricing_rules: service.guest_pricing_rules || [],
-              overall_discount_percent: serviceOverallDiscount,
-              free_hour_discounts: serviceFreeHourDiscounts,
-              group_discounts: serviceGroupDiscounts,
-              timeslot_discounts: serviceTimeslotDiscounts
-            } as any);
+             .insert({
+               venue_id: venueId,
+               name: service.service_type,
+               price: service.price,
+               images: service.images,
+               service_type: service.service_type,
+               service_games: service.service_games || [],
+               guest_pricing_rules: service.guest_pricing_rules || [],
+               max_tables: service.max_tables || 1,
+               overall_discount_percent: serviceOverallDiscount,
+               free_hour_discounts: serviceFreeHourDiscounts,
+               group_discounts: serviceGroupDiscounts,
+               timeslot_discounts: serviceTimeslotDiscounts
+             } as any);
 
           if (insertError) throw insertError;
         }
@@ -768,13 +771,21 @@ const EditVenue = () => {
                         serviceIndex={index}
                       />
                        
-                        {/* Guest Count Pricing Rules */}
-                        <GuestPricingRules
-                          rules={service.guest_pricing_rules}
-                          onRulesChange={(rules) => updateService(index, 'guest_pricing_rules', rules)}
-                          maxTables={service.max_tables || 1}
-                          onMaxTablesChange={(maxTables) => updateService(index, 'max_tables', maxTables)}
-                        />
+                        {/* Maximum Tables */}
+                        <div className="space-y-2">
+                          <Label>Maximum Tables</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="20"
+                            value={service.max_tables || 1}
+                            onChange={(e) => updateService(index, 'max_tables', Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-32"
+                          />
+                          <p className="text-sm text-muted-foreground">
+                            Maximum number of tables customers can book for this service
+                          </p>
+                        </div>
                     </CardContent>
                   </Card>
                 ))

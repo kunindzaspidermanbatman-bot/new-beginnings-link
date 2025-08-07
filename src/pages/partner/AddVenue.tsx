@@ -18,7 +18,7 @@ import PartnerLayout from '@/components/PartnerLayout';
 import VenueImageUpload from '@/components/VenueImageUpload';
 import { ServiceImageUpload } from '@/components/ServiceImageUpload';
 import GoogleLocationPicker from '@/components/GoogleLocationPicker';
-import { GuestPricingRules, GuestPricingRule } from '@/components/GuestPricingRules';
+
 
 type ServiceType = 'PC Gaming' | 'PlayStation 5' | 'Billiards' | 'Table Tennis';
 
@@ -529,13 +529,21 @@ const AddVenue = () => {
                             serviceIndex={index}
                           />
                           
-                          {/* Guest Count Pricing Rules */}
-                          <GuestPricingRules
-                            rules={service.guest_pricing_rules}
-                            onChange={(rules) => updateService(index, 'guest_pricing_rules', rules)}
-                            maxTables={service.max_tables || 1}
-                            onMaxTablesChange={(maxTables) => updateService(index, 'max_tables', maxTables)}
-                          />
+                          {/* Maximum Tables */}
+                          <div className="space-y-2">
+                            <Label>Maximum Tables</Label>
+                            <Input
+                              type="number"
+                              min="1"
+                              max="20"
+                              value={service.max_tables || 1}
+                              onChange={(e) => updateService(index, 'max_tables', Math.max(1, parseInt(e.target.value) || 1))}
+                              className="w-32"
+                            />
+                            <p className="text-sm text-muted-foreground">
+                              Maximum number of tables customers can book for this service
+                            </p>
+                          </div>
                         </CardContent>
                       </Card>
                       
