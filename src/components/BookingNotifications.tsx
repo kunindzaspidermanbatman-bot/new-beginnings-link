@@ -127,25 +127,41 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         return booking.venues?.partner_id === profile.id;
       }) || [];
 
-      const formattedBookings = partnerBookings.map(booking => ({
-        id: booking.id,
-        booking_date: booking.booking_date,
-        booking_time: booking.booking_time,
-        guest_count: booking.guest_count,
-        total_price: Number(booking.total_price),
-        user_email: booking.user_email,
-        special_requests: booking.special_requests,
-        venue_name: booking.venues.name,
-        venue_id: booking.venue_id,
-        created_at: booking.created_at,
-        service_name: booking.venue_services?.name,
-        booking_services: (booking.booking_services || []).map(service => ({
-          ...service,
-          table_configurations: typeof service.table_configurations === 'string' 
-            ? JSON.parse(service.table_configurations) 
-            : service.table_configurations
-        }))
-      }));
+      const formattedBookings = partnerBookings.map(booking => {
+        const formattedServices = (booking.booking_services || []).map(service => {
+          let tableConfigs = service.table_configurations;
+          
+          // Parse table configurations if they're stored as string
+          if (typeof tableConfigs === 'string') {
+            try {
+              tableConfigs = JSON.parse(tableConfigs);
+            } catch (e) {
+              console.error('Error parsing table configurations:', e);
+              tableConfigs = [];
+            }
+          }
+          
+          return {
+            ...service,
+            table_configurations: tableConfigs
+          };
+        });
+
+        return {
+          id: booking.id,
+          booking_date: booking.booking_date,
+          booking_time: booking.booking_time,
+          guest_count: booking.guest_count,
+          total_price: Number(booking.total_price),
+          user_email: booking.user_email,
+          special_requests: booking.special_requests,
+          venue_name: booking.venues.name,
+          venue_id: booking.venue_id,
+          created_at: booking.created_at,
+          service_name: booking.venue_services?.name,
+          booking_services: formattedServices
+        };
+      });
 
       console.log('Partner bookings filtered:', partnerBookings);
       console.log('Formatted bookings:', formattedBookings);
@@ -197,6 +213,25 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
           if (data && data.venues.partner_id === profile.id && data.status === 'pending') {
             console.log('✅ Booking is for this partner, adding to notifications');
             
+            const formattedServices = (data.booking_services || []).map(service => {
+              let tableConfigs = service.table_configurations;
+              
+              // Parse table configurations if they're stored as string
+              if (typeof tableConfigs === 'string') {
+                try {
+                  tableConfigs = JSON.parse(tableConfigs);
+                } catch (e) {
+                  console.error('Error parsing table configurations:', e);
+                  tableConfigs = [];
+                }
+              }
+              
+              return {
+                ...service,
+                table_configurations: tableConfigs
+              };
+            });
+
             const newBooking = {
               id: data.id,
               booking_date: data.booking_date,
@@ -209,12 +244,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
               venue_id: data.venue_id,
               created_at: data.created_at,
               service_name: data.venue_services?.name,
-              booking_services: (data.booking_services || []).map(service => ({
-                ...service,
-                table_configurations: typeof service.table_configurations === 'string' 
-                  ? JSON.parse(service.table_configurations) 
-                  : service.table_configurations
-              }))
+              booking_services: formattedServices
             };
 
             console.log('🎯 Adding booking to state:', newBooking);
@@ -377,21 +407,45 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
 
   const getTableConfigurations = (booking: PendingBooking) => {
     if (!booking.booking_services || booking.booking_services.length === 0) {
+      console.log('No booking services found for booking:', booking.id);
       return [];
     }
     
+    console.log('Processing table configurations for booking:', booking.id, booking.booking_services);
+    
     const allTables = [];
-    booking.booking_services.forEach(service => {
-      if (service.table_configurations && Array.isArray(service.table_configurations)) {
-        allTables.push(...service.table_configurations);
+    booking.booking_services.forEach((service, index) => {
+      let tableConfigs = service.table_configurations;
+      
+      console.log(`Service ${index} table_configurations (raw):`, tableConfigs, typeof tableConfigs);
+      
+      // Handle different data formats
+      if (typeof tableConfigs === 'string') {
+        try {
+          tableConfigs = JSON.parse(tableConfigs);
+          console.log(`Service ${index} table_configurations (parsed):`, tableConfigs);
+        } catch (e) {
+          console.error('Error parsing table configurations:', e);
+          tableConfigs = [];
+        }
+      }
+      
+      if (Array.isArray(tableConfigs) && tableConfigs.length > 0) {
+        console.log(`Adding ${tableConfigs.length} tables from service ${index}:`, tableConfigs);
+        allTables.push(...tableConfigs);
+      } else {
+        console.log(`Service ${index} has no valid table configurations`);
       }
     });
     
+    console.log('Final table configurations:', allTables);
     return allTables;
   };
 
   const getTotalTables = (booking: PendingBooking) => {
-    return getTableConfigurations(booking).length;
+    const tables = getTableConfigurations(booking);
+    console.log('Total tables for booking:', booking.id, tables.length);
+    return tables.length;
   };
 
   return (
