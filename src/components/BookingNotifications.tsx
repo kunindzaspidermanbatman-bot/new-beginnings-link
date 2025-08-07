@@ -38,6 +38,10 @@ interface PendingBooking {
   venue_id: string;
   created_at: string;
   service_name?: string;
+  booking_services?: Array<{
+    id: string;
+    table_configurations: any;
+  }>;
 }
 
 interface BookingNotificationsProps {
@@ -82,7 +86,8 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         .select(`
           *,
           venues(name, partner_id),
-          venue_services(name)
+          venue_services(name),
+          booking_services(id, table_configurations)
         `)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
@@ -117,7 +122,8 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         venue_name: booking.venues.name,
         venue_id: booking.venue_id,
         created_at: booking.created_at,
-        service_name: booking.venue_services?.name
+        service_name: booking.venue_services?.name,
+        booking_services: booking.booking_services
       }));
 
       console.log('Partner bookings filtered:', partnerBookings);
@@ -151,7 +157,8 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
             .select(`
               *,
               venues!inner(name, partner_id),
-              venue_services(name)
+              venue_services(name),
+              booking_services(id, table_configurations)
             `)
             .eq('id', payload.new.id)
             .single();
@@ -172,7 +179,8 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
               venue_name: data.venues.name,
               venue_id: data.venue_id,
               created_at: data.created_at,
-              service_name: data.venue_services?.name
+              service_name: data.venue_services?.name,
+              booking_services: data.booking_services
             };
 
             console.log('🎯 Adding booking to state:', newBooking);
@@ -439,6 +447,20 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                       <span className="text-muted-foreground">Guests:</span>
                       <span className="font-medium">{selectedBooking.guest_count}</span>
                     </div>
+                    {selectedBooking.booking_services && selectedBooking.booking_services.length > 0 && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Tables:</span>
+                        <span className="font-medium">
+                          {(() => {
+                            const tableConfigs = selectedBooking.booking_services[0]?.table_configurations;
+                            if (tableConfigs && Array.isArray(tableConfigs)) {
+                              return `${tableConfigs.length} table${tableConfigs.length > 1 ? 's' : ''}`;
+                            }
+                            return '1 table';
+                          })()}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Date:</span>
                       <span className="font-medium">{new Date(selectedBooking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
