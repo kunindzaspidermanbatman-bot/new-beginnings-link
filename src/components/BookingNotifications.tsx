@@ -525,60 +525,116 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                 </div>
               </div>
 
-              {/* Service Information */}
+              {/* Venue & Service Information */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Service Details</h3>
+                <h3 className="text-lg font-medium">Venue & Service Details</h3>
+                
+                {/* Main Venue Information */}
                 <div className="p-4 rounded-xl border-2 border-primary bg-primary/5">
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-4 mb-4">
                     <div className="w-16 h-16 bg-muted rounded-xl flex-shrink-0"></div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-lg mb-1">{selectedBooking.service_name || 'General Booking'}</h4>
-                      <p className="text-muted-foreground">
-                        Venue: {selectedBooking.venue_name}
+                      <h4 className="font-semibold text-lg mb-1">{selectedBooking.venue_name}</h4>
+                      <p className="text-muted-foreground text-sm">
+                        Main Venue Booking
                       </p>
                     </div>
                   </div>
                   
-                  {/* Booking information */}
-                  <div className="mt-4 pt-4 border-t border-border space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Guests:</span>
-                      <span className="font-medium">{selectedBooking.guest_count}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Tables:</span>
-                      <div className="font-medium">
-                        {getTableConfigurations(selectedBooking).length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {getTableConfigurations(selectedBooking).map((table, index) => (
-                              <span key={index} className="bg-muted px-2 py-1 rounded text-xs">
-                                Table {table.table_number}: {table.guest_count} guest{table.guest_count !== 1 ? 's' : ''}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <span>{getTotalTables(selectedBooking)} table{getTotalTables(selectedBooking) !== 1 ? 's' : ''}</span>
-                        )}
+                  {/* Main booking details */}
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Total Guests:</span>
+                        <span className="font-medium">{selectedBooking.guest_count}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Total Tables:</span>
+                        <span className="font-medium">{getTotalTables(selectedBooking)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Date:</span>
+                        <span className="font-medium">{new Date(selectedBooking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Date:</span>
-                      <span className="font-medium">{new Date(selectedBooking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Time:</span>
-                      <span className="font-medium">
-                        {formatTime(selectedBooking.booking_time)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm pt-2 border-t">
-                      <span className="text-muted-foreground font-medium">Total:</span>
-                      <span className="font-bold text-primary">
-                        {selectedBooking.total_price.toFixed(2)} GEL
-                      </span>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Arrival Time:</span>
+                        <span className="font-medium">{formatTime(selectedBooking.booking_time)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Departure Time:</span>
+                        <span className="font-medium">
+                          {selectedBooking.booking_services && selectedBooking.booking_services.length > 0 
+                            ? formatTime(selectedBooking.booking_services[0].departure_time) 
+                            : 'Not specified'
+                          }
+                        </span>
+                      </div>
+                      <div className="flex justify-between pt-2 border-t">
+                        <span className="text-muted-foreground font-medium">Total Price:</span>
+                        <span className="font-bold text-primary">{selectedBooking.total_price.toFixed(2)} GEL</span>
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                {/* Service Breakdown */}
+                {selectedBooking.booking_services && selectedBooking.booking_services.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-muted-foreground">Service Breakdown:</h4>
+                    {selectedBooking.booking_services.map((service, index) => {
+                      const serviceTableConfigs = typeof service.table_configurations === 'string' 
+                        ? JSON.parse(service.table_configurations || '[]') 
+                        : service.table_configurations || [];
+                      
+                      const serviceTables = new Set(
+                        serviceTableConfigs.map((table: any) => table.table_number).filter((num: any) => num !== undefined)
+                      ).size;
+
+                      return (
+                        <div key={index} className="p-3 bg-muted/30 rounded-lg border">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-medium">{service.venue_services?.name || 'Service'}</h5>
+                            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                              {service.venue_services?.service_type || 'General'}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-3 text-xs">
+                            <div>
+                              <span className="text-muted-foreground block">Guests:</span>
+                              <span className="font-medium">{service.guest_count}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground block">Tables:</span>
+                              <span className="font-medium">{serviceTables}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground block">Duration:</span>
+                              <span className="font-medium">
+                                {formatTime(service.arrival_time)} - {formatTime(service.departure_time)}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Table details */}
+                          {serviceTableConfigs.length > 0 && (
+                            <div className="mt-2 pt-2 border-t">
+                              <span className="text-xs text-muted-foreground block mb-1">Table Configuration:</span>
+                              <div className="flex flex-wrap gap-1">
+                                {serviceTableConfigs.map((table: any, tableIndex: number) => (
+                                  <span key={tableIndex} className="text-xs bg-background px-2 py-1 rounded border">
+                                    Table {table.table_number}: {table.guest_count} guests
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Special Requests */}
