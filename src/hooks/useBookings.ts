@@ -29,10 +29,7 @@ export interface Booking {
     arrival_time: string;
     departure_time: string;
     guest_count: number;
-    table_configurations: Array<{
-      table_number: number;
-      guest_count: number;
-    }> | null;
+    table_configurations: any;
     venue_services: {
       name: string;
       service_type: string;
@@ -83,7 +80,15 @@ export const useUserBookings = () => {
         throw error;
       }
 
-      return data as Booking[];
+      return data?.map(booking => ({
+        ...booking,
+        booking_services: (booking.booking_services || []).map(service => ({
+          ...service,
+          table_configurations: typeof service.table_configurations === 'string' 
+            ? JSON.parse(service.table_configurations) 
+            : service.table_configurations
+        }))
+      })) as Booking[];
     },
     enabled: !!user,
   });

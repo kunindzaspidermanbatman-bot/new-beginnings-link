@@ -33,10 +33,7 @@ interface RecentBooking {
     arrival_time: string;
     departure_time: string;
     guest_count: number;
-    table_configurations: Array<{
-      table_number: number;
-      guest_count: number;
-    }> | null;
+    table_configurations: any;
     venue_services: {
       name: string;
       service_type: string;
@@ -135,7 +132,12 @@ const Analytics = () => {
           status: booking.status,
           user_email: booking.user_email,
           venue_name: booking.venues.name,
-          booking_services: booking.booking_services || []
+          booking_services: (booking.booking_services || []).map(service => ({
+            ...service,
+            table_configurations: typeof service.table_configurations === 'string' 
+              ? JSON.parse(service.table_configurations) 
+              : service.table_configurations
+          }))
         }));
 
       setRecentBookings(recentBookingsData);

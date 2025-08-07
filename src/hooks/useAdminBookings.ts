@@ -25,10 +25,7 @@ interface AdminBooking {
     arrival_time: string;
     departure_time: string;
     guest_count: number;
-    table_configurations: Array<{
-      table_number: number;
-      guest_count: number;
-    }> | null;
+    table_configurations: any;
     venue_services: {
       name: string;
       service_type: string;

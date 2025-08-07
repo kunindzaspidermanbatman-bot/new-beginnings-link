@@ -44,10 +44,7 @@ interface PendingBooking {
     arrival_time: string;
     departure_time: string;
     guest_count: number;
-    table_configurations: Array<{
-      table_number: number;
-      guest_count: number;
-    }> | null;
+    table_configurations: any;
     venue_services: {
       name: string;
       service_type: string;
@@ -142,7 +139,12 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         venue_id: booking.venue_id,
         created_at: booking.created_at,
         service_name: booking.venue_services?.name,
-        booking_services: booking.booking_services || []
+        booking_services: (booking.booking_services || []).map(service => ({
+          ...service,
+          table_configurations: typeof service.table_configurations === 'string' 
+            ? JSON.parse(service.table_configurations) 
+            : service.table_configurations
+        }))
       }));
 
       console.log('Partner bookings filtered:', partnerBookings);
@@ -207,7 +209,12 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
               venue_id: data.venue_id,
               created_at: data.created_at,
               service_name: data.venue_services?.name,
-              booking_services: data.booking_services || []
+              booking_services: (data.booking_services || []).map(service => ({
+                ...service,
+                table_configurations: typeof service.table_configurations === 'string' 
+                  ? JSON.parse(service.table_configurations) 
+                  : service.table_configurations
+              }))
             };
 
             console.log('🎯 Adding booking to state:', newBooking);
@@ -368,17 +375,23 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
-  const getTotalTables = (booking: PendingBooking) => {
+  const getTableConfigurations = (booking: PendingBooking) => {
     if (!booking.booking_services || booking.booking_services.length === 0) {
-      return 0;
+      return [];
     }
     
-    return booking.booking_services.reduce((total, service) => {
-      if (service.table_configurations && service.table_configurations.length > 0) {
-        return total + service.table_configurations.length;
+    const allTables = [];
+    booking.booking_services.forEach(service => {
+      if (service.table_configurations && Array.isArray(service.table_configurations)) {
+        allTables.push(...service.table_configurations);
       }
-      return total + 1; // Fallback to 1 table if no configurations
-    }, 0);
+    });
+    
+    return allTables;
+  };
+
+  const getTotalTables = (booking: PendingBooking) => {
+    return getTableConfigurations(booking).length;
   };
 
   return (
@@ -487,7 +500,19 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Tables:</span>
-                      <span className="font-medium">{getTotalTables(selectedBooking)} table{getTotalTables(selectedBooking) !== 1 ? 's' : ''}</span>
+                      <div className="font-medium">
+                        {getTableConfigurations(selectedBooking).length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {getTableConfigurations(selectedBooking).map((table, index) => (
+                              <span key={index} className="bg-muted px-2 py-1 rounded text-xs">
+                                Table {table.table_number}: {table.guest_count} guest{table.guest_count !== 1 ? 's' : ''}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span>{getTotalTables(selectedBooking)} table{getTotalTables(selectedBooking) !== 1 ? 's' : ''}</span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Date:</span>
