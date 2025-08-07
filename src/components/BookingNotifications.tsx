@@ -433,7 +433,12 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
   };
 
   const getTotalTables = (booking: PendingBooking) => {
-    return getTableConfigurations(booking).length;
+    const tables = getTableConfigurations(booking);
+    // Count distinct table numbers
+    const uniqueTableNumbers = new Set(
+      tables.map(table => table.table_number).filter(num => num !== undefined)
+    );
+    return uniqueTableNumbers.size;
   };
 
   return (
