@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useVenues } from "@/hooks/useVenues";
 import VenueCard from "@/components/VenueCard";
@@ -9,6 +9,9 @@ import { useGeolocation } from "@/hooks/useGeolocation";
 import { SkeletonCard } from '@/components/ui/loading';
 import { toast } from "sonner";
 import type { Venue } from "@/hooks/useVenues";
+import HomePageFilters from "@/components/HomePageFilters";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 // Generate stable coordinates for venues (same logic as AirbnbStyleMap)
 const getVenueCoordinates = (venue: Venue) => {
@@ -54,14 +57,40 @@ const SearchResults = () => {
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
   const { getCurrentLocation, loading: locationLoading, error: locationError } = useGeolocation();
+  
+  // Filter state management
+  const [filteredVenues, setFilteredVenues] = useState<Venue[]>([]);
+  const [currentFilters, setCurrentFilters] = useState({
+    category: [],
+    location: [],
+    games: []
+  });
+
+  // Fetch all venue services for filtering
+  const { data: allVenueServices } = useQuery({
+    queryKey: ['all-venue-services'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('venue_services')
+        .select('*');
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Update filtered venues when venues data changes
+  useEffect(() => {
+    setFilteredVenues(venues || []);
+  }, [venues]);
 
   // Filter venues based on map bounds when in split or map view
-  const filteredVenues = useMemo(() => {
-    if (!venues) return [];
+  const filteredVenuesMemo = useMemo(() => {
+    if (!filteredVenues) return [];
     
     // Only filter when map is visible and bounds are available
     if ((viewMode === 'split' || viewMode === 'map') && mapBounds) {
-      return venues.filter(venue => {
+      return filteredVenues.filter(venue => {
         const coordinates = getVenueCoordinates(venue);
         return (
           coordinates.lat >= mapBounds.south &&
@@ -72,9 +101,93 @@ const SearchResults = () => {
       });
     }
     
-    // Return all venues when in list view or no bounds available
-    return venues;
-  }, [venues, mapBounds, viewMode]);
+    // Return filtered venues when in list view or no bounds available
+    return filteredVenues;
+  }, [filteredVenues, mapBounds, viewMode]);
+
+  // Handle filters change
+  const handleFiltersChange = (filters: {
+    category: string[];
+    location: string[];
+    games: string[];
+  }) => {
+    if (!venues || !allVenueServices) {
+      setFilteredVenues(venues || []);
+      return;
+    }
+
+    // Store current filters
+    setCurrentFilters(filters);
+
+    let filtered = venues;
+
+    console.log('Applying filters:', filters);
+    console.log('Total venues:', venues.length);
+    console.log('Total services:', allVenueServices.length);
+
+    // Apply category filter (OR logic within categories)
+    if (filters.category && filters.category.length > 0) {
+      const venueIdsWithCategory = allVenueServices
+        .filter(service => {
+          const serviceType = (service as { service_type?: string }).service_type || '';
+          const serviceName = (service as { name?: string }).name || '';
+          
+          // Check if any selected category matches this service
+          return filters.category.some((category: string) => 
+            serviceType.toLowerCase().includes(category.toLowerCase()) ||
+            serviceName.toLowerCase().includes(category.toLowerCase()) ||
+            category.toLowerCase() === 'billiards' && serviceType.toLowerCase().includes('billiard')
+          );
+        })
+        .map(service => (service as { venue_id: string }).venue_id);
+      
+      filtered = filtered.filter(venue => venueIdsWithCategory.includes(venue.id));
+      console.log('After category filter:', filtered.length, 'venues', 'Categories:', filters.category);
+    }
+
+    // Apply location filter (OR logic within locations) - search by district only
+    if (filters.location && filters.location.length > 0) {
+      filtered = filtered.filter(venue => 
+        filters.location.some((location: string) => {
+          // Only check district field for matches
+          return venue.district && venue.district.toLowerCase().includes(location.toLowerCase());
+        })
+      );
+      console.log('After location filter:', filtered.length, 'venues', 'Locations:', filters.location);
+    }
+
+    // Apply games filter (OR logic within games)
+    if (filters.games && filters.games.length > 0) {
+      const venueIdsWithGames = allVenueServices
+        .filter(service => {
+          // Check if service has any of the selected games
+          const serviceGames = (service as { service_games?: string[] }).service_games || [];
+          const serviceType = (service as { service_type?: string }).service_type || '';
+          const serviceName = (service as { name?: string }).name || '';
+          
+          return filters.games.some((game: string) => {
+            const gameLower = game.toLowerCase();
+            return serviceGames.some((sg: string) => sg.toLowerCase().includes(gameLower)) ||
+                   serviceType.toLowerCase().includes(gameLower) ||
+                   serviceName.toLowerCase().includes(gameLower) ||
+                   // Special handling for billiards
+                   (gameLower.includes('billiard') && (
+                     serviceType.toLowerCase().includes('billiard') ||
+                     serviceType.toLowerCase().includes('pool') ||
+                     serviceName.toLowerCase().includes('billiard') ||
+                     serviceName.toLowerCase().includes('pool')
+                   ));
+          });
+        })
+        .map(service => (service as { venue_id: string }).venue_id);
+      
+      filtered = filtered.filter(venue => venueIdsWithGames.includes(venue.id));
+      console.log('After games filter:', filtered.length, 'venues', 'Games:', filters.games);
+    }
+
+    console.log('Final filtered venues:', filtered.length);
+    setFilteredVenues(filtered);
+  };
 
   // Handle map bounds change - memoized to prevent infinite re-renders
   const handleBoundsChange = useCallback((bounds: { north: number; south: number; east: number; west: number }) => {
@@ -161,8 +274,8 @@ const SearchResults = () => {
             </h1>
             <p className="text-muted-foreground">
               {(viewMode === 'split' || viewMode === 'map') && mapBounds 
-                ? `${filteredVenues?.length || 0} of ${venues?.length || 0} venues in view`
-                : `${venues?.length || 0} venues found`
+                ? `${filteredVenuesMemo?.length || 0} of ${filteredVenues?.length || 0} venues in view`
+                : `${filteredVenues?.length || 0} venues found`
               }
             </p>
           </div>
@@ -221,6 +334,13 @@ const SearchResults = () => {
           </div>
         </div>
 
+        {/* Filter Component */}
+        <div className="flex justify-start mb-6">
+          <HomePageFilters 
+            onFiltersChange={handleFiltersChange} 
+          />
+        </div>
+
         {/* Content */}
         <div className="flex gap-6 h-[calc(100vh-300px)]">
           {/* Venues List */}
@@ -232,7 +352,7 @@ const SearchResults = () => {
                     ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' 
                     : 'grid-cols-2 lg:grid-cols-3'
                 }`}>
-                  {filteredVenues?.map((venue, index) => (
+                  {filteredVenuesMemo?.map((venue, index) => (
                     <motion.div
                       key={venue.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -245,7 +365,7 @@ const SearchResults = () => {
                   ))}
                 </div>
                 
-                {!filteredVenues?.length && venues?.length && (
+                {!filteredVenuesMemo?.length && filteredVenues?.length && (
                   <div className="text-center py-12">
                     <p className="text-muted-foreground text-lg">
                       No venues found in the current map view.
@@ -253,6 +373,35 @@ const SearchResults = () => {
                     <p className="text-sm text-muted-foreground mt-2">
                       Try zooming out or panning the map to see more venues.
                     </p>
+                  </div>
+                )}
+                
+                {!filteredVenues?.length && venues?.length && (
+                  <div className="text-center py-12">
+                    <div className="max-w-md mx-auto">
+                      <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                        <span className="text-gray-400 text-3xl">🔍</span>
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">No Venues Found</h3>
+                      <p className="text-gray-600 mb-6">
+                        No venues match your current filters. Try adjusting your search criteria or clear the filters to see all venues.
+                      </p>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          const emptyFilters = {
+                            category: [],
+                            location: [],
+                            games: []
+                          };
+                          setCurrentFilters(emptyFilters);
+                          setFilteredVenues(venues);
+                        }}
+                        className="mx-auto"
+                      >
+                        Clear All Filters
+                      </Button>
+                    </div>
                   </div>
                 )}
                 
@@ -271,7 +420,7 @@ const SearchResults = () => {
           {(viewMode === 'split' || viewMode === 'map') && (
             <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} rounded-lg overflow-hidden border`}>
               <GoogleMapsWrapper
-                venues={venues || []}
+                venues={filteredVenues || []}
                 selectedVenue={selectedVenue}
                 mapCenter={mapCenter}
                 onBoundsChange={handleBoundsChange}
