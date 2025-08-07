@@ -44,6 +44,19 @@ const Bookings: React.FC = () => {
     updateBookingStatus.mutate({ bookingId, status: newStatus });
   };
 
+  const getTotalTables = (booking: any) => {
+    if (!booking.booking_services || booking.booking_services.length === 0) {
+      return 0;
+    }
+    
+    return booking.booking_services.reduce((total: number, service: any) => {
+      if (service.table_configurations && service.table_configurations.length > 0) {
+        return total + service.table_configurations.length;
+      }
+      return total + 1; // Fallback to 1 table if no configurations
+    }, 0);
+  };
+
   const filteredBookings = bookings?.filter(booking => 
     booking.venue_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     booking.user_email_profile?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -212,7 +225,12 @@ const Bookings: React.FC = () => {
                   <TableCell className="text-white">
                     <div className="flex items-center space-x-1">
                       <Users className="h-4 w-4" />
-                      <span>{booking.guest_count}</span>
+                      <span>
+                        {booking.guest_count}
+                        {getTotalTables(booking) > 0 && (
+                          <span className="text-gray-400 ml-1">• {getTotalTables(booking)} table{getTotalTables(booking) !== 1 ? 's' : ''}</span>
+                        )}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="text-white font-medium">

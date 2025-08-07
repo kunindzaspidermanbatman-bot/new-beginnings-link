@@ -258,6 +258,11 @@ interface BookingData {
     serviceId: string;
     arrivalTime: string;
     departureTime: string;
+    numberOfTables?: number;
+    tableConfigurations?: Array<{
+      table_number: number;
+      guest_count: number;
+    }>;
     selectedGames?: string[];
     originalPrice?: number;
     finalPrice?: number;
@@ -382,6 +387,44 @@ const ConfirmAndPay = () => {
   const getServiceName = (serviceId: string) => {
     const service = services?.find(s => s.id === serviceId);
     return service?.name || 'Unknown Service';
+  };
+
+  const getTotalTables = () => {
+    if (!bookingData.serviceBookings || bookingData.serviceBookings.length === 0) {
+      return 0;
+    }
+    
+    return bookingData.serviceBookings.reduce((total, booking) => {
+      if (booking.tableConfigurations && booking.tableConfigurations.length > 0) {
+        return total + booking.tableConfigurations.length;
+      }
+      return total + (booking.numberOfTables || 1); // Fallback to numberOfTables or 1
+    }, 0);
+  };
+
+  const getTotalGuests = () => {
+    if (!bookingData.serviceBookings || bookingData.serviceBookings.length === 0) {
+      return bookingData.guests; // Fallback to main guest count
+    }
+    
+    return bookingData.serviceBookings.reduce((total, booking) => {
+      if (booking.tableConfigurations && booking.tableConfigurations.length > 0) {
+        // Sum up guests from all table configurations
+        return total + booking.tableConfigurations.reduce((tableTotal, config) => {
+          return tableTotal + config.guest_count;
+        }, 0);
+      }
+      return total + bookingData.guests; // Fallback to main guest count
+    }, 0);
+  };
+
+  const getServiceGuests = (serviceBooking: any) => {
+    if (serviceBooking.tableConfigurations && serviceBooking.tableConfigurations.length > 0) {
+      return serviceBooking.tableConfigurations.reduce((total: number, config: any) => {
+        return total + config.guest_count;
+      }, 0);
+    }
+    return bookingData.guests; // Fallback to main guest count
   };
 
   // Use the discounted total from booking data if available, otherwise calculate it
@@ -588,6 +631,22 @@ const ConfirmAndPay = () => {
                 <div className="border-t border-border/50 pt-4 space-y-4">
                   <p className="text-sm text-muted-foreground">This reservation is non-refundable.</p>
                   
+                  {/* Booking Summary */}
+                  <div className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">{getTotalGuests()} guest{getTotalGuests() > 1 ? 's' : ''}</span>
+                      </div>
+                      {getTotalTables() > 0 && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">•</span>
+                          <span className="text-sm text-muted-foreground">{getTotalTables()} table{getTotalTables() !== 1 ? 's' : ''}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
                   {/* Date and Time */}
                   <div>
                     <h4 className="font-medium text-foreground mb-1">Date</h4>
@@ -608,7 +667,7 @@ const ConfirmAndPay = () => {
                               </Badge>
                             </div>
                             <p className="text-xs text-muted-foreground mb-2">
-                              Duration: {calculateDuration(booking.arrivalTime, booking.departureTime)} • {bookingData.guests} guest{bookingData.guests > 1 ? 's' : ''}
+                              Duration: {calculateDuration(booking.arrivalTime, booking.departureTime)} • {getServiceGuests(booking)} guest{getServiceGuests(booking) > 1 ? 's' : ''} • {booking.tableConfigurations?.length || booking.numberOfTables || 1} table{(booking.tableConfigurations?.length || booking.numberOfTables || 1) !== 1 ? 's' : ''}
                             </p>
                             {booking.selectedGames && booking.selectedGames.length > 0 && (
                               <div>
@@ -671,7 +730,7 @@ const ConfirmAndPay = () => {
                         <div key={index}>
                           <div className="flex justify-between">
                             <span className="text-sm text-muted-foreground">
-                              {getServiceName(booking.serviceId)} × {bookingData.guests} guest{bookingData.guests > 1 ? 's' : ''} × {calculateDuration(booking.arrivalTime, booking.departureTime).replace('h', ' hours').replace('m', ' mins')}
+                              {getServiceName(booking.serviceId)} × {getServiceGuests(booking)} guest{getServiceGuests(booking) > 1 ? 's' : ''} × {calculateDuration(booking.arrivalTime, booking.departureTime).replace('h', ' hours').replace('m', ' mins')}
                             </span>
                             <span className="text-sm text-foreground">
                               {booking.finalPrice ? booking.finalPrice.toFixed(2) : Math.round((bookingData.totalPrice / bookingData.serviceBookings.length))}₾

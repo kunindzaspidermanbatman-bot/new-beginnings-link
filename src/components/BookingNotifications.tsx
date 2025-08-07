@@ -38,6 +38,21 @@ interface PendingBooking {
   venue_id: string;
   created_at: string;
   service_name?: string;
+  booking_services?: Array<{
+    id: string;
+    service_id: string;
+    arrival_time: string;
+    departure_time: string;
+    guest_count: number;
+    table_configurations: Array<{
+      table_number: number;
+      guest_count: number;
+    }> | null;
+    venue_services: {
+      name: string;
+      service_type: string;
+    };
+  }>;
 }
 
 interface BookingNotificationsProps {
@@ -82,7 +97,16 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         .select(`
           *,
           venues(name, partner_id),
-          venue_services(name)
+          venue_services(name),
+          booking_services(
+            id,
+            service_id,
+            arrival_time,
+            departure_time,
+            guest_count,
+            table_configurations,
+            venue_services(name, service_type)
+          )
         `)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
@@ -117,7 +141,8 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         venue_name: booking.venues.name,
         venue_id: booking.venue_id,
         created_at: booking.created_at,
-        service_name: booking.venue_services?.name
+        service_name: booking.venue_services?.name,
+        booking_services: booking.booking_services || []
       }));
 
       console.log('Partner bookings filtered:', partnerBookings);
@@ -151,7 +176,16 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
             .select(`
               *,
               venues!inner(name, partner_id),
-              venue_services(name)
+              venue_services(name),
+              booking_services(
+                id,
+                service_id,
+                arrival_time,
+                departure_time,
+                guest_count,
+                table_configurations,
+                venue_services(name, service_type)
+              )
             `)
             .eq('id', payload.new.id)
             .single();
@@ -172,7 +206,8 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
               venue_name: data.venues.name,
               venue_id: data.venue_id,
               created_at: data.created_at,
-              service_name: data.venue_services?.name
+              service_name: data.venue_services?.name,
+              booking_services: data.booking_services || []
             };
 
             console.log('🎯 Adding booking to state:', newBooking);
@@ -333,6 +368,19 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
+  const getTotalTables = (booking: PendingBooking) => {
+    if (!booking.booking_services || booking.booking_services.length === 0) {
+      return 0;
+    }
+    
+    return booking.booking_services.reduce((total, service) => {
+      if (service.table_configurations && service.table_configurations.length > 0) {
+        return total + service.table_configurations.length;
+      }
+      return total + 1; // Fallback to 1 table if no configurations
+    }, 0);
+  };
+
   return (
     <>
       <Card className={className}>
@@ -364,13 +412,11 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                     <div className="text-sm text-muted-foreground">
                       <p>{booking.user_email}</p>
                       <p>{formatDate(booking.booking_date)} at {formatTime(booking.booking_time)}</p>
+                      <p>{getTotalTables(booking)} table{getTotalTables(booking) !== 1 ? 's' : ''} • {booking.guest_count} guest{booking.guest_count !== 1 ? 's' : ''}</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="font-semibold">{booking.total_price.toFixed(2)} GEL</div>
-                    <div className="text-sm text-muted-foreground">
-                      {booking.guest_count} guest{booking.guest_count !== 1 ? 's' : ''}
-                    </div>
                   </div>
                 </div>
               ))}
@@ -438,6 +484,10 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Guests:</span>
                       <span className="font-medium">{selectedBooking.guest_count}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Tables:</span>
+                      <span className="font-medium">{getTotalTables(selectedBooking)} table{getTotalTables(selectedBooking) !== 1 ? 's' : ''}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Date:</span>

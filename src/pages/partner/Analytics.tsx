@@ -27,6 +27,21 @@ interface RecentBooking {
   status: string;
   user_email: string;
   venue_name: string;
+  booking_services?: Array<{
+    id: string;
+    service_id: string;
+    arrival_time: string;
+    departure_time: string;
+    guest_count: number;
+    table_configurations: Array<{
+      table_number: number;
+      guest_count: number;
+    }> | null;
+    venue_services: {
+      name: string;
+      service_type: string;
+    };
+  }>;
 }
 
 const Analytics = () => {
@@ -57,7 +72,16 @@ const Analytics = () => {
         .from('bookings')
         .select(`
           *,
-          venues!inner(partner_id, name)
+          venues!inner(partner_id, name),
+          booking_services(
+            id,
+            service_id,
+            arrival_time,
+            departure_time,
+            guest_count,
+            table_configurations,
+            venue_services(name, service_type)
+          )
         `)
         .eq('venues.partner_id', profile.id);
 
@@ -110,7 +134,8 @@ const Analytics = () => {
           total_price: Number(booking.total_price),
           status: booking.status,
           user_email: booking.user_email,
-          venue_name: booking.venues.name
+          venue_name: booking.venues.name,
+          booking_services: booking.booking_services || []
         }));
 
       setRecentBookings(recentBookingsData);
@@ -175,6 +200,19 @@ const Analytics = () => {
       case 'rejected': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const getTotalTables = (booking: RecentBooking) => {
+    if (!booking.booking_services || booking.booking_services.length === 0) {
+      return 0;
+    }
+    
+    return booking.booking_services.reduce((total, service) => {
+      if (service.table_configurations && service.table_configurations.length > 0) {
+        return total + service.table_configurations.length;
+      }
+      return total + 1; // Fallback to 1 table if no configurations
+    }, 0);
   };
 
   if (loading) {
@@ -341,6 +379,9 @@ const Analytics = () => {
                             {formatTime(booking.booking_time)}
                             <Users className="h-4 w-4 ml-3 mr-1" />
                             {booking.guest_count} guest{booking.guest_count !== 1 ? 's' : ''}
+                            {getTotalTables(booking) > 0 && (
+                              <span className="ml-1">• {getTotalTables(booking)} table{getTotalTables(booking) !== 1 ? 's' : ''}</span>
+                            )}
                           </div>
                           <p className="text-sm text-muted-foreground">
                             Customer: {booking.user_email}

@@ -447,6 +447,13 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     return time; // Return time as-is in 24-hour format (HH:MM)
   };
 
+  const getTotalTables = (serviceBooking: any) => {
+    if (serviceBooking.tableConfigurations && serviceBooking.tableConfigurations.length > 0) {
+      return serviceBooking.tableConfigurations.length;
+    }
+    return serviceBooking.numberOfTables || 1;
+  };
+
   const handleServiceSelect = (service: VenueService) => {
     setDialogService(service);
     setIsDialogOpen(true);
@@ -643,6 +650,10 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">Guests:</span>
                             <span className="font-medium">{formData.guests}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Tables:</span>
+                            <span className="font-medium">{getTotalTables(serviceBooking)} table{getTotalTables(serviceBooking) !== 1 ? 's' : ''}</span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">Date:</span>

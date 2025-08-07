@@ -19,6 +19,21 @@ interface AdminBooking {
   venue_location?: string;
   user_full_name?: string;
   user_email_profile?: string;
+  booking_services?: Array<{
+    id: string;
+    service_id: string;
+    arrival_time: string;
+    departure_time: string;
+    guest_count: number;
+    table_configurations: Array<{
+      table_number: number;
+      guest_count: number;
+    }> | null;
+    venue_services: {
+      name: string;
+      service_type: string;
+    };
+  }>;
 }
 
 export const useAdminBookings = (status?: string) => {
@@ -28,7 +43,18 @@ export const useAdminBookings = (status?: string) => {
       // First, get bookings
       let bookingsQuery = supabase
         .from('bookings')
-        .select('*')
+        .select(`
+          *,
+          booking_services(
+            id,
+            service_id,
+            arrival_time,
+            departure_time,
+            guest_count,
+            table_configurations,
+            venue_services(name, service_type)
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (status && status !== 'all') {

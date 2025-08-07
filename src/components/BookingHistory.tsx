@@ -72,6 +72,19 @@ const BookingHistory = () => {
     }
   };
 
+  const getTotalTables = (booking: any) => {
+    if (!booking.booking_services || booking.booking_services.length === 0) {
+      return 0;
+    }
+    
+    return booking.booking_services.reduce((total: number, service: any) => {
+      if (service.table_configurations && service.table_configurations.length > 0) {
+        return total + service.table_configurations.length;
+      }
+      return total + 1; // Fallback to 1 table if no configurations
+    }, 0);
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Your Bookings</h3>
@@ -121,7 +134,12 @@ const BookingHistory = () => {
                 </div>
                 <div className="flex items-center gap-1">
                   <Users className="w-3 h-3 text-gray-500" />
-                  <span className="font-medium">{booking.guest_count} guest{booking.guest_count > 1 ? 's' : ''}</span>
+                  <span className="font-medium">
+                    {booking.guest_count} guest{booking.guest_count > 1 ? 's' : ''}
+                    {getTotalTables(booking) > 0 && (
+                      <span className="text-gray-400"> • {getTotalTables(booking)} table{getTotalTables(booking) !== 1 ? 's' : ''}</span>
+                    )}
+                  </span>
                 </div>
               </div>
 
