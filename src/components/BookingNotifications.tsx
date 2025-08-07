@@ -114,6 +114,24 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         allBookings: data
       });
 
+      // Debug: Check booking_services data structure
+      data?.forEach((booking, index) => {
+        console.log(`🔍 Booking ${index + 1}:`, {
+          id: booking.id,
+          booking_services: booking.booking_services,
+          booking_services_count: booking.booking_services?.length || 0
+        });
+        
+        booking.booking_services?.forEach((service, serviceIndex) => {
+          console.log(`  📋 Service ${serviceIndex + 1}:`, {
+            service_id: service.service_id,
+            table_configurations: service.table_configurations,
+            table_configs_type: typeof service.table_configurations,
+            table_configs_length: Array.isArray(service.table_configurations) ? service.table_configurations.length : 'not array'
+          });
+        });
+      });
+
       if (error) throw error;
 
       // Filter bookings that belong to this partner
