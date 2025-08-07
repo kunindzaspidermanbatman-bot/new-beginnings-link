@@ -44,6 +44,11 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       serviceId: string;
       arrivalTime: string;
       departureTime: string;
+      numberOfTables?: number;
+      tableConfigurations?: Array<{
+        table_number: number;
+        guest_count: number;
+      }>;
       selectedGames?: string[];
       originalPrice?: number;
       finalPrice?: number;
@@ -96,10 +101,20 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
           const diffMs = end.getTime() - start.getTime();
           const durationHours = diffMs / (1000 * 60 * 60);
           
-          // Use new guest pricing logic
-          const guestPrice = calculateGuestPrice(service, formData.guests);
-          if (guestPrice !== null) {
-            totalPrice += guestPrice * durationHours;
+          // Calculate price per table if table configurations exist
+          if (serviceBooking.tableConfigurations && serviceBooking.tableConfigurations.length > 0) {
+            serviceBooking.tableConfigurations.forEach(config => {
+              const guestPrice = calculateGuestPrice(service, config.guest_count);
+              if (guestPrice !== null) {
+                totalPrice += guestPrice * durationHours;
+              }
+            });
+          } else {
+            // Fallback to old guest pricing logic
+            const guestPrice = calculateGuestPrice(service, formData.guests);
+            if (guestPrice !== null) {
+              totalPrice += guestPrice * durationHours;
+            }
           }
         }
       }
@@ -448,7 +463,11 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
 
   const handleServiceConfirm = (data: {
     service: VenueService;
-    guests: number;
+    numberOfTables: number;
+    tableConfigurations: Array<{
+      table_number: number;
+      guest_count: number;
+    }>;
     date: Date;
     arrivalTime: string;
     departureTime: string;
@@ -459,10 +478,13 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     appliedDiscounts: string[];
     discountBreakdown: any;
   }) => {
+    // Calculate total guests across all tables for this service
+    const totalGuestsForService = data.tableConfigurations.reduce((sum, config) => sum + config.guest_count, 0);
+    
     setFormData(prev => ({
       ...prev,
       serviceIds: [...prev.serviceIds, data.service.id],
-      guests: data.guests,
+      guests: totalGuestsForService, // Set to total guests across all tables
       date: data.date,
       serviceBookings: [
         ...prev.serviceBookings,
@@ -470,6 +492,8 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
           serviceId: data.service.id,
           arrivalTime: data.arrivalTime,
           departureTime: data.departureTime,
+          numberOfTables: data.numberOfTables,
+          tableConfigurations: data.tableConfigurations,
           selectedGames: data.selectedGames,
           // Store the pricing information from discount calculation
           originalPrice: data.originalPrice,

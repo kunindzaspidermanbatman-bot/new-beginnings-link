@@ -23,7 +23,11 @@ interface ServiceBookingDialogProps {
   onClose: () => void;
   onConfirm: (data: {
     service: VenueService;
-    guests: number;
+    numberOfTables: number;
+    tableConfigurations: Array<{
+      table_number: number;
+      guest_count: number;
+    }>;
     date: Date;
     arrivalTime: string;
     departureTime: string;
@@ -55,7 +59,11 @@ const ServiceBookingDialog = ({
   initialData
 }: ServiceBookingDialogProps) => {
   const { toast } = useToast();
-  const [guests, setGuests] = useState(1);
+  const [numberOfTables, setNumberOfTables] = useState(1);
+  const [tableConfigurations, setTableConfigurations] = useState<Array<{
+    table_number: number;
+    guest_count: number;
+  }>>([{ table_number: 1, guest_count: 1 }]);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [arrivalTime, setArrivalTime] = useState("");
   const [departureTime, setDepartureTime] = useState("");
@@ -69,19 +77,35 @@ const ServiceBookingDialog = ({
   // Set initial values when dialog opens with existing data
   useEffect(() => {
     if (isOpen && initialData) {
-      setGuests(initialData.guests);
+      setTableConfigurations([{ table_number: 1, guest_count: initialData.guests }]);
       setSelectedDate(initialData.date);
       setArrivalTime(initialData.arrivalTime);
       setDepartureTime(initialData.departureTime);
     } else if (isOpen && !initialData) {
       // Reset to defaults when opening without initial data
-      setGuests(1);
+      setNumberOfTables(1);
+      setTableConfigurations([{ table_number: 1, guest_count: 1 }]);
       setSelectedDate(undefined);
       setArrivalTime("");
       setDepartureTime("");
       setSelectedGames([]);
     }
   }, [isOpen, initialData]);
+
+  // Update table configurations when number of tables changes
+  useEffect(() => {
+    setTableConfigurations(prev => {
+      const newConfigs = [];
+      for (let i = 1; i <= numberOfTables; i++) {
+        const existingConfig = prev.find(config => config.table_number === i);
+        newConfigs.push({
+          table_number: i,
+          guest_count: existingConfig?.guest_count || 1
+        });
+      }
+      return newConfigs;
+    });
+  }, [numberOfTables]);
 
   // Generate 30-minute time slots based on venue hours
   const generateTimeSlots = () => {
@@ -199,7 +223,8 @@ const ServiceBookingDialog = ({
     if (service && selectedDate && arrivalTime && departureTime) {
       onConfirm({
         service,
-        guests,
+        numberOfTables,
+        tableConfigurations,
         date: selectedDate,
         arrivalTime,
         departureTime,
@@ -212,7 +237,8 @@ const ServiceBookingDialog = ({
         discountBreakdown: discountData?.discountBreakdown || {}
       });
       // Reset form
-      setGuests(1);
+      setNumberOfTables(1);
+      setTableConfigurations([{ table_number: 1, guest_count: 1 }]);
       setSelectedDate(undefined);
       setArrivalTime("");
       setDepartureTime("");
@@ -221,11 +247,13 @@ const ServiceBookingDialog = ({
     }
   };
 
-  // Calculate total price based on duration and guests using new pricing logic
+  // Calculate total price based on duration and guests per table using new pricing logic
   const calculateTotalPrice = () => {
     if (!service || !arrivalTime || !departureTime) {
-      const guestPrice = service ? calculateGuestPrice(service, guests) : 0;
-      return guestPrice || 0;
+      return tableConfigurations.reduce((total, config) => {
+        const guestPrice = service ? calculateGuestPrice(service, config.guest_count) : 0;
+        return total + (guestPrice || 0);
+      }, 0);
     }
     
     const start = new Date(`2000-01-01T${arrivalTime}:00`);
@@ -233,8 +261,11 @@ const ServiceBookingDialog = ({
     const diffMs = end.getTime() - start.getTime();
     const hours = diffMs / (1000 * 60 * 60);
     
-    const guestPrice = calculateGuestPrice(service, guests);
-    return guestPrice ? guestPrice * hours : 0;
+    // Calculate price per table, then sum all tables
+    return tableConfigurations.reduce((total, config) => {
+      const guestPrice = calculateGuestPrice(service, config.guest_count);
+      return total + (guestPrice ? guestPrice * hours : 0);
+    }, 0);
   };
 
   // Always calculate pricing and discounts - hooks must be called in same order every render
@@ -246,12 +277,15 @@ const ServiceBookingDialog = ({
     return diffMs / (1000 * 60 * 60);
   })() : 1;
 
+  // Get total guests across all tables for discount calculation
+  const totalGuests = tableConfigurations.reduce((sum, config) => sum + config.guest_count, 0);
+
   // Use discount calculation hook - must be called before early return
   const { data: discountData, isLoading: discountLoading } = useServiceDiscountCalculation(
     service?.id, 
     totalPrice, 
     durationHours, 
-    guests,
+    totalGuests,
     arrivalTime || "09:00",
     departureTime || "10:00",
     !!service // Only enable when service exists
@@ -262,7 +296,7 @@ const ServiceBookingDialog = ({
     serviceId: service?.id,
     totalPrice,
     durationHours,
-    guests,
+    totalGuests,
     discountData,
     isLoading: discountLoading
   });
@@ -282,45 +316,96 @@ const ServiceBookingDialog = ({
         
         <div className="space-y-6">
 
-          {/* Guest Count */}
+          {/* Number of Tables */}
           <div className="space-y-3">
-            <label className="text-sm font-medium">Number of People</label>
+            <label className="text-sm font-medium">Number of Tables</label>
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Guests</span>
+                <span className="text-sm">Tables</span>
               </div>
               <div className="flex items-center gap-3">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    const newGuestCount = Math.max(1, guests - 1);
-                    if (isValidGuestCount(service, newGuestCount)) {
-                      setGuests(newGuestCount);
-                    }
-                  }}
-                  disabled={guests <= 1}
+                  onClick={() => setNumberOfTables(Math.max(1, numberOfTables - 1))}
+                  disabled={numberOfTables <= 1}
                   className="h-8 w-8 p-0"
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
-                <span className="w-8 text-center text-sm font-medium">{guests}</span>
+                <span className="w-8 text-center text-sm font-medium">{numberOfTables}</span>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    const newGuestCount = Math.min(getMaxGuestCount(service) || 20, guests + 1);
-                    if (isValidGuestCount(service, newGuestCount)) {
-                      setGuests(newGuestCount);
-                    }
-                  }}
-                  disabled={guests >= (getMaxGuestCount(service) || 20) || !isValidGuestCount(service, guests + 1)}
+                  onClick={() => setNumberOfTables(Math.min((service as any)?.max_tables || 10, numberOfTables + 1))}
+                  disabled={numberOfTables >= ((service as any)?.max_tables || 10)}
                   className="h-8 w-8 p-0"
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
               </div>
+            </div>
+          </div>
+
+          {/* Guest Count per Table */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium">Guests per Table</label>
+            <div className="space-y-3">
+              {tableConfigurations.map((config) => (
+                <div key={config.table_number} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">Table {config.table_number}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newGuestCount = Math.max(1, config.guest_count - 1);
+                        if (isValidGuestCount(service, newGuestCount)) {
+                          setTableConfigurations(prev =>
+                            prev.map(c =>
+                              c.table_number === config.table_number
+                                ? { ...c, guest_count: newGuestCount }
+                                : c
+                            )
+                          );
+                        }
+                      }}
+                      disabled={config.guest_count <= 1}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Minus className="h-3 w-3" />
+                    </Button>
+                    <span className="w-8 text-center text-sm font-medium">{config.guest_count}</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newGuestCount = Math.min(getMaxGuestCount(service) || 20, config.guest_count + 1);
+                        if (isValidGuestCount(service, newGuestCount)) {
+                          setTableConfigurations(prev =>
+                            prev.map(c =>
+                              c.table_number === config.table_number
+                                ? { ...c, guest_count: newGuestCount }
+                                : c
+                            )
+                          );
+                        }
+                      }}
+                      disabled={
+                        config.guest_count >= (getMaxGuestCount(service) || 20) ||
+                        !isValidGuestCount(service, config.guest_count + 1)
+                      }
+                      className="h-8 w-8 p-0"
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -518,18 +603,15 @@ const ServiceBookingDialog = ({
               )}
               <p className="text-sm text-muted-foreground mt-1">
                 {(() => {
-                  const guestPrice = calculateGuestPrice(service, guests);
-                  if (!guestPrice) return 'Not available for this guest count';
-                  
                   if (!arrivalTime || !departureTime) {
-                    return `${guestPrice} GEL total for ${guests} guest${guests !== 1 ? 's' : ''}`;
+                    return `Priced per table - ${tableConfigurations.length} table${tableConfigurations.length !== 1 ? 's' : ''}`;
                   }
                   
                   const start = new Date(`2000-01-01T${arrivalTime}:00`);
                   const end = new Date(`2000-01-01T${departureTime}:00`);
                   const diffMs = end.getTime() - start.getTime();
                   const hours = diffMs / (1000 * 60 * 60);
-                  return `${guestPrice} GEL × ${hours} hour${hours !== 1 ? 's' : ''} ${savings > 0 ? '- discounts' : ''} = ${finalPrice.toFixed(2)} GEL`;
+                  return `${tableConfigurations.length} table${tableConfigurations.length !== 1 ? 's' : ''} × ${hours} hour${hours !== 1 ? 's' : ''} ${savings > 0 ? '- discounts' : ''} = ${finalPrice.toFixed(2)} GEL`;
                 })()}
               </p>
             </div>

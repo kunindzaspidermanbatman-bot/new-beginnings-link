@@ -38,6 +38,7 @@ interface VenueService {
   images: string[];
   service_games?: string[];
   guest_pricing_rules: Array<{ maxGuests: number; price: number }>;
+  max_tables?: number;
   overall_discount_percent?: number;
   free_hour_discounts?: Array<{ thresholdHours: number; freeHours: number }>;
   group_discounts?: Array<{ minGuests: number; discountPercent: number }>;
@@ -767,11 +768,13 @@ const EditVenue = () => {
                         serviceIndex={index}
                       />
                        
-                       {/* Guest Count Pricing Rules */}
-                       <GuestPricingRules
-                         rules={service.guest_pricing_rules}
-                         onRulesChange={(rules) => updateService(index, 'guest_pricing_rules', rules)}
-                       />
+                        {/* Guest Count Pricing Rules */}
+                        <GuestPricingRules
+                          rules={service.guest_pricing_rules}
+                          onRulesChange={(rules) => updateService(index, 'guest_pricing_rules', rules)}
+                          maxTables={service.max_tables || 1}
+                          onMaxTablesChange={(maxTables) => updateService(index, 'max_tables', maxTables)}
+                        />
                     </CardContent>
                   </Card>
                 ))

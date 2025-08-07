@@ -29,6 +29,7 @@ interface VenueService {
   discount_percentage: number;
   service_games: string[];
   guest_pricing_rules: Array<{ maxGuests: number; price: number }>;
+  max_tables: number;
 }
 
 interface VenueData {
@@ -72,7 +73,8 @@ const AddVenue = () => {
     images: [],
     discount_percentage: 0,
     service_games: [],
-    guest_pricing_rules: []
+    guest_pricing_rules: [],
+    max_tables: 1
   }]);
   const [venue, setVenue] = useState<VenueData>({
     name: '',
@@ -154,7 +156,8 @@ const AddVenue = () => {
             images: service.images,
             service_type: service.service_type,
             service_games: service.service_games || [],
-            guest_pricing_rules: service.guest_pricing_rules || []
+            guest_pricing_rules: service.guest_pricing_rules || [],
+            max_tables: service.max_tables || 1
           });
           
           if (error) {
@@ -188,7 +191,8 @@ const AddVenue = () => {
       images: [],
       discount_percentage: 0,
       service_games: [],
-      guest_pricing_rules: []
+      guest_pricing_rules: [],
+      max_tables: 1
     }]);
   };
 
@@ -528,7 +532,9 @@ const AddVenue = () => {
                           {/* Guest Count Pricing Rules */}
                           <GuestPricingRules
                             rules={service.guest_pricing_rules}
-                            onRulesChange={(rules) => updateService(index, 'guest_pricing_rules', rules)}
+                            onChange={(rules) => updateService(index, 'guest_pricing_rules', rules)}
+                            maxTables={service.max_tables || 1}
+                            onMaxTablesChange={(maxTables) => updateService(index, 'max_tables', maxTables)}
                           />
                         </CardContent>
                       </Card>

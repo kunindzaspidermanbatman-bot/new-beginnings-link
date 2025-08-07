@@ -27,6 +27,7 @@ export type Database = {
           selected_games: string[] | null
           service_id: string
           subtotal: number
+          table_configurations: Json | null
           updated_at: string
         }
         Insert: {
@@ -41,6 +42,7 @@ export type Database = {
           selected_games?: string[] | null
           service_id: string
           subtotal?: number
+          table_configurations?: Json | null
           updated_at?: string
         }
         Update: {
@@ -55,6 +57,7 @@ export type Database = {
           selected_games?: string[] | null
           service_id?: string
           subtotal?: number
+          table_configurations?: Json | null
           updated_at?: string
         }
         Relationships: [
@@ -340,6 +343,7 @@ export type Database = {
           guest_pricing_rules: Json | null
           id: string
           images: string[] | null
+          max_tables: number
           name: string
           overall_discount_enabled: boolean | null
           overall_discount_percent: number | null
@@ -358,6 +362,7 @@ export type Database = {
           guest_pricing_rules?: Json | null
           id?: string
           images?: string[] | null
+          max_tables?: number
           name: string
           overall_discount_enabled?: boolean | null
           overall_discount_percent?: number | null
@@ -376,6 +381,7 @@ export type Database = {
           guest_pricing_rules?: Json | null
           id?: string
           images?: string[] | null
+          max_tables?: number
           name?: string
           overall_discount_enabled?: boolean | null
           overall_discount_percent?: number | null
