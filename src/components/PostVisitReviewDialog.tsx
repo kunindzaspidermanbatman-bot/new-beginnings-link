@@ -63,15 +63,25 @@ export const PostVisitReviewDialog = () => {
         
         // Check if booking time has passed
         try {
-          const bookingDateTime = parse(
-            `${booking.booking_date} ${booking.booking_time}`,
-            'yyyy-MM-dd HH:mm:ss',
-            new Date()
-          );
+          let bookingEndTime: Date;
           
-          // Add duration based on booking data (default to 1 hour)
-          const durationMs = 1 * 60 * 60 * 1000; // 1 hour in milliseconds
-          const bookingEndTime = new Date(bookingDateTime.getTime() + durationMs);
+          // If booking has services with departure times, use the latest departure time
+          if (booking.booking_services && booking.booking_services.length > 0) {
+            const latestDepartureTime = booking.booking_services.reduce((latest, service) => {
+              const serviceDepartureTime = new Date(`${booking.booking_date}T${service.departure_time}`);
+              return serviceDepartureTime > latest ? serviceDepartureTime : latest;
+            }, new Date(0));
+            bookingEndTime = latestDepartureTime;
+          } else {
+            // Fallback to main booking time with 1 hour duration
+            const bookingDateTime = parse(
+              `${booking.booking_date} ${booking.booking_time}`,
+              'yyyy-MM-dd HH:mm:ss',
+              new Date()
+            );
+            const durationMs = 1 * 60 * 60 * 1000; // 1 hour in milliseconds
+            bookingEndTime = new Date(bookingDateTime.getTime() + durationMs);
+          }
           
           console.log('PostVisitReviewDialog: Booking', booking.id, 'ends at:', bookingEndTime.toISOString(), 'Current time:', now.toISOString());
           

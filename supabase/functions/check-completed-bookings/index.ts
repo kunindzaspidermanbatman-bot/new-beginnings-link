@@ -30,7 +30,11 @@ const handler = async (req: Request): Promise<Response> => {
       .select(`
         *,
         venues!inner(name),
-        profiles!inner(email, full_name)
+        profiles!inner(email, full_name),
+        booking_services(
+          departure_time,
+          arrival_time
+        )
       `)
       .eq('status', 'confirmed')
       .or(`booking_date.lt.${currentDate},and(booking_date.eq.${currentDate},booking_time.lt.${currentTime})`);
@@ -45,6 +49,29 @@ const handler = async (req: Request): Promise<Response> => {
 
     for (const booking of completedBookings || []) {
       try {
+        // Check if booking is actually completed based on service departure times
+        let isActuallyCompleted = false;
+        
+        if (booking.booking_services && booking.booking_services.length > 0) {
+          // Check if all service departure times have passed
+          const latestDepartureTime = booking.booking_services.reduce((latest, service) => {
+            const serviceDepartureTime = new Date(`${booking.booking_date}T${service.departure_time}`);
+            return serviceDepartureTime > latest ? serviceDepartureTime : latest;
+          }, new Date(0));
+          
+          isActuallyCompleted = latestDepartureTime < now;
+        } else {
+          // Fallback to main booking time with 1 hour duration
+          const bookingDateTime = new Date(`${booking.booking_date}T${booking.booking_time}`);
+          const bookingEndTime = new Date(bookingDateTime.getTime() + 60 * 60 * 1000); // 1 hour
+          isActuallyCompleted = bookingEndTime < now;
+        }
+        
+        if (!isActuallyCompleted) {
+          console.log(`Booking ${booking.id} is not actually completed yet`);
+          continue;
+        }
+
         // Check if we already sent a review notification for this booking
         const { data: existingNotification } = await supabase
           .from('notifications')

@@ -130,7 +130,12 @@ const BookingHistory = () => {
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="w-3 h-3 text-gray-500" />
-                  <span className="font-medium">{formatTime(booking.booking_time)}</span>
+                  <span className="font-medium">
+                    {booking.booking_services && booking.booking_services.length > 0 
+                      ? `${booking.booking_services.length} service${booking.booking_services.length > 1 ? 's' : ''}`
+                      : formatTime(booking.booking_time)
+                    }
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Users className="w-3 h-3 text-gray-500" />
@@ -143,7 +148,21 @@ const BookingHistory = () => {
                 </div>
               </div>
 
-              {booking.venue_services && (
+              {/* Show individual service bookings if available */}
+              {booking.booking_services && booking.booking_services.length > 0 ? (
+                <div className="mb-3 space-y-2">
+                  {booking.booking_services.map((service, index) => (
+                    <div key={index} className="p-2 bg-gray-50 rounded-lg">
+                      <div className="text-xs font-medium text-gray-900">
+                        {service.venue_services?.name || 'Service'}
+                      </div>
+                      <div className="text-[10px] text-gray-500">
+                        {formatTime(service.arrival_time)} - {formatTime(service.departure_time)} • {service.venue_services?.service_type || 'Service'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : booking.venue_services && (
                 <div className="mb-3 p-2 bg-gray-50 rounded-lg">
                   <div className="text-xs font-medium text-gray-900">
                     Service: {booking.venue_services.name}

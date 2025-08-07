@@ -28,7 +28,6 @@ interface ServiceBookingDialogProps {
       table_number: number;
       guest_count: number;
     }>;
-    date: Date;
     arrivalTime: string;
     departureTime: string;
     selectedGames: string[];
@@ -40,9 +39,9 @@ interface ServiceBookingDialogProps {
   }) => void;
   openingTime?: string;
   closingTime?: string;
+  venueDate?: Date; // Add venue date prop
   initialData?: {
     guests: number;
-    date: Date;
     arrivalTime: string;
     departureTime: string;
   };
@@ -56,6 +55,7 @@ const ServiceBookingDialog = ({
   onConfirm,
   openingTime,
   closingTime,
+  venueDate,
   initialData
 }: ServiceBookingDialogProps) => {
   const { toast } = useToast();
@@ -64,12 +64,10 @@ const ServiceBookingDialog = ({
     table_number: number;
     guest_count: number;
   }>>([{ table_number: 1, guest_count: 1 }]);
-  const [selectedDate, setSelectedDate] = useState<Date>();
   const [arrivalTime, setArrivalTime] = useState("");
   const [departureTime, setDepartureTime] = useState("");
   const [selectedGames, setSelectedGames] = useState<string[]>([]);
   const [isGameComboboxOpen, setIsGameComboboxOpen] = useState(false);
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   // Use service-specific games instead of all venue games
   const availableGames = (service as any)?.service_games || [];
@@ -78,14 +76,12 @@ const ServiceBookingDialog = ({
   useEffect(() => {
     if (isOpen && initialData) {
       setTableConfigurations([{ table_number: 1, guest_count: initialData.guests }]);
-      setSelectedDate(initialData.date);
       setArrivalTime(initialData.arrivalTime);
       setDepartureTime(initialData.departureTime);
     } else if (isOpen && !initialData) {
       // Reset to defaults when opening without initial data
       setNumberOfTables(1);
       setTableConfigurations([{ table_number: 1, guest_count: 1 }]);
-      setSelectedDate(undefined);
       setArrivalTime("");
       setDepartureTime("");
       setSelectedGames([]);
@@ -155,9 +151,9 @@ const ServiceBookingDialog = ({
       // Only add times that are not in the past (for today's bookings)
       const today = new Date();
       const todayString = format(today, 'yyyy-MM-dd');
-      const selectedDateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
+      const venueDateString = venueDate ? format(venueDate, 'yyyy-MM-dd') : '';
       
-      if (selectedDateString === todayString) {
+      if (venueDateString === todayString) {
         if (timeString >= currentTimeString) {
           slots.push(timeString);
         }
@@ -181,9 +177,9 @@ const ServiceBookingDialog = ({
     const now = new Date();
     const today = new Date();
     const todayString = format(today, 'yyyy-MM-dd');
-    const selectedDateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
+    const venueDateString = venueDate ? format(venueDate, 'yyyy-MM-dd') : '';
     
-    if (selectedDateString === todayString) {
+    if (venueDateString === todayString) {
       const bufferTime = new Date(now.getTime() + 2 * 60 * 1000);
       const currentTimeString = `${bufferTime.getHours().toString().padStart(2, '0')}:${bufferTime.getMinutes().toString().padStart(2, '0')}`;
       
@@ -220,12 +216,11 @@ const ServiceBookingDialog = ({
   };
 
   const handleConfirm = () => {
-    if (service && selectedDate && arrivalTime && departureTime) {
+    if (service && venueDate && arrivalTime && departureTime) {
       onConfirm({
         service,
         numberOfTables,
         tableConfigurations,
-        date: selectedDate,
         arrivalTime,
         departureTime,
         selectedGames,
@@ -239,7 +234,6 @@ const ServiceBookingDialog = ({
       // Reset form
       setNumberOfTables(1);
       setTableConfigurations([{ table_number: 1, guest_count: 1 }]);
-      setSelectedDate(undefined);
       setArrivalTime("");
       setDepartureTime("");
       setSelectedGames([]);
@@ -482,48 +476,21 @@ const ServiceBookingDialog = ({
             </div>
           )}
 
-          {/* Date Selection */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium">Select Date</label>
-            <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !selectedDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    console.log('Calendar onSelect called with:', date);
-                    setSelectedDate(date);
-                    setIsDatePickerOpen(false);
-                  }}
-                  disabled={(date) => {
-                    const now = new Date();
-                    const todayStart = new Date(now);
-                    todayStart.setHours(0, 0, 0, 0);
-                    const isDisabled = date < todayStart;
-                    console.log('Calendar disabled check - Date:', date.toISOString(), 'Today start:', todayStart.toISOString(), 'Disabled:', isDisabled);
-                    return isDisabled;
-                  }}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+          {/* Venue Date Display */}
+          {venueDate && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Booking Date</label>
+              <div className="p-3 border rounded-lg bg-muted/50">
+                <div className="flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">{format(venueDate, "PPP")}</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Time Selection */}
-          {selectedDate && (
+          {venueDate && (
             <div className="space-y-4">
               <label className="text-sm font-medium">Select Time</label>
               <div className="grid grid-cols-2 gap-3">
@@ -624,7 +591,7 @@ const ServiceBookingDialog = ({
             </Button>
             <Button 
               onClick={handleConfirm} 
-              disabled={!selectedDate || !arrivalTime || !departureTime}
+              disabled={!venueDate || !arrivalTime || !departureTime}
               className="flex-1"
             >
               Continue

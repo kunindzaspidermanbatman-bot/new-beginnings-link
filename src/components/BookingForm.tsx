@@ -172,6 +172,16 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       return;
     }
 
+    // For service bookings, ensure date is selected
+    if (services.length > 0 && !formData.date) {
+      toast({
+        title: "Missing date",
+        description: "Please select a date before booking services",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate times based on booking type
     if (services.length === 0) {
       // For basic venue booking
@@ -455,6 +465,14 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
   };
 
   const handleServiceSelect = (service: VenueService) => {
+    if (!formData.date) {
+      toast({
+        title: "Select Date First",
+        description: "Please select a date before choosing services",
+        variant: "destructive",
+      });
+      return;
+    }
     setDialogService(service);
     setIsDialogOpen(true);
   };
@@ -475,7 +493,6 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       table_number: number;
       guest_count: number;
     }>;
-    date: Date;
     arrivalTime: string;
     departureTime: string;
     selectedGames: string[];
@@ -492,7 +509,6 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       ...prev,
       serviceIds: [...prev.serviceIds, data.service.id],
       guests: totalGuestsForService, // Set to total guests across all tables
-      date: data.date,
       serviceBookings: [
         ...prev.serviceBookings,
         {
@@ -522,6 +538,46 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
         <CardContent className="px-0 space-y-8 pb-24">
           <form onSubmit={handleSubmit} className="space-y-8">
             
+            {/* Date Selection - Now venue-specific and appears above services */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium">Select Date</h3>
+              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !formData.date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.date ? format(formData.date, "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={formData.date}
+                    onSelect={(date) => {
+                      console.log('Calendar onSelect called with:', date);
+                      setFormData(prev => ({ ...prev, date }));
+                    }}
+                    disabled={(date) => {
+                      const now = new Date();
+                      const todayStart = new Date(now);
+                      todayStart.setHours(0, 0, 0, 0);
+                      const isDisabled = date < todayStart;
+                      console.log('Calendar disabled check - Date:', date.toISOString(), 'Today start:', todayStart.toISOString(), 'Disabled:', isDisabled);
+                      return isDisabled;
+                    }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
             {/* Main Booking Times - Only show if no services */}
             {services.length === 0 && (
@@ -598,6 +654,8 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                         "p-4 rounded-xl border-2 cursor-pointer transition-all relative",
                         isSelected 
                           ? "border-primary bg-primary/5" 
+                          : !formData.date
+                          ? "border-border opacity-50 cursor-not-allowed"
                           : "border-border hover:border-primary/50"
                       )}
                       onClick={() => handleServiceSelect(service)}
@@ -621,6 +679,16 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
+                      )}
+
+                      {/* Date required indicator */}
+                      {!formData.date && !isSelected && (
+                        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                          <div className="text-center p-4">
+                            <CalendarIcon className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                            <p className="text-sm text-muted-foreground">Select a date first</p>
+                          </div>
+                        </div>
                       )}
                       
                       <div className="flex items-start gap-4">
@@ -732,11 +800,11 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
               onConfirm={handleServiceConfirm}
               openingTime={openingTime}
               closingTime={closingTime}
+              venueDate={formData.date}
               initialData={
-                dialogService && formData.serviceIds.includes(dialogService.id) && formData.date
+                dialogService && formData.serviceIds.includes(dialogService.id)
                   ? {
                       guests: formData.guests,
-                      date: formData.date,
                       arrivalTime: formData.serviceBookings.find(sb => sb.serviceId === dialogService.id)?.arrivalTime || "",
                       departureTime: formData.serviceBookings.find(sb => sb.serviceId === dialogService.id)?.departureTime || ""
                     }
