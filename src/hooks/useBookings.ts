@@ -23,10 +23,6 @@ export interface Booking {
     name: string;
     service_type: string;
   };
-  booking_services?: Array<{
-    id: string;
-    table_configurations: any;
-  }>;
 }
 
 export const useUserBookings = () => {
@@ -51,10 +47,6 @@ export const useUserBookings = () => {
           venue_services (
             name,
             service_type
-          ),
-          booking_services (
-            id,
-            table_configurations
           )
         `)
         .eq('user_id', user.id)

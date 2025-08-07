@@ -110,7 +110,7 @@ const BookingHistory = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+              <div className="grid grid-cols-3 gap-2 text-xs mb-3">
                 <div className="flex items-center gap-1">
                   <CalendarDays className="w-3 h-3 text-gray-500" />
                   <span className="font-medium">{formatDate(booking.booking_date)}</span>
@@ -123,22 +123,6 @@ const BookingHistory = () => {
                   <Users className="w-3 h-3 text-gray-500" />
                   <span className="font-medium">{booking.guest_count} guest{booking.guest_count > 1 ? 's' : ''}</span>
                 </div>
-                {booking.booking_services && booking.booking_services.length > 0 && (
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded border border-gray-500 flex items-center justify-center">
-                      <div className="w-1.5 h-1.5 bg-gray-500 rounded-sm"></div>
-                    </div>
-                    <span className="font-medium">
-                      {(() => {
-                        const tableConfigs = booking.booking_services[0]?.table_configurations;
-                        if (tableConfigs && Array.isArray(tableConfigs)) {
-                          return `${tableConfigs.length} table${tableConfigs.length > 1 ? 's' : ''}`;
-                        }
-                        return '1 table';
-                      })()}
-                    </span>
-                  </div>
-                )}
               </div>
 
               {booking.venue_services && (

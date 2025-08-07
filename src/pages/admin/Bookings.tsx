@@ -172,7 +172,7 @@ const Bookings: React.FC = () => {
                 <TableHead className="text-gray-300">Customer</TableHead>
                 <TableHead className="text-gray-300">Venue</TableHead>
                 <TableHead className="text-gray-300">Date & Time</TableHead>
-                <TableHead className="text-gray-300">Guests & Tables</TableHead>
+                <TableHead className="text-gray-300">Guests</TableHead>
                 <TableHead className="text-gray-300">Amount</TableHead>
                 <TableHead className="text-gray-300">Status</TableHead>
                 <TableHead className="text-gray-300">Actions</TableHead>
@@ -210,27 +210,9 @@ const Bookings: React.FC = () => {
                     </div>
                   </TableCell>
                   <TableCell className="text-white">
-                    <div className="space-y-1">
-                      <div className="flex items-center space-x-1">
-                        <Users className="h-4 w-4" />
-                        <span>{booking.guest_count} guest{booking.guest_count > 1 ? 's' : ''}</span>
-                      </div>
-                      {booking.booking_services && booking.booking_services.length > 0 && (
-                        <div className="flex items-center space-x-1 text-sm text-gray-400">
-                          <div className="w-3 h-3 rounded border border-gray-400 flex items-center justify-center">
-                            <div className="w-1.5 h-1.5 bg-gray-400 rounded-sm"></div>
-                          </div>
-                          <span>
-                            {(() => {
-                              const tableConfigs = booking.booking_services[0]?.table_configurations;
-                              if (tableConfigs && Array.isArray(tableConfigs)) {
-                                return `${tableConfigs.length} table${tableConfigs.length > 1 ? 's' : ''}`;
-                              }
-                              return '1 table';
-                            })()}
-                          </span>
-                        </div>
-                      )}
+                    <div className="flex items-center space-x-1">
+                      <Users className="h-4 w-4" />
+                      <span>{booking.guest_count}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-white font-medium">
