@@ -89,55 +89,66 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
     console.log('🚀 Fetching pending bookings for partner:', profile.id);
 
     try {
-      const { data, error } = await supabase
+      // First get all pending bookings for this partner
+      const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select(`
           *,
           venues!inner(name, partner_id),
-          venue_services(name),
-          booking_services(
-            id,
-            service_id,
-            arrival_time,
-            departure_time,
-            guest_count,
-            table_configurations,
-            venue_services(name, service_type)
-          )
+          venue_services(name)
         `)
         .eq('status', 'pending')
         .eq('venues.partner_id', profile.id)
         .order('created_at', { ascending: false });
 
+      if (bookingsError) {
+        console.error('❌ Bookings query error:', bookingsError);
+        throw bookingsError;
+      }
+
+      // Then get booking_services for all these bookings
+      const bookingIds = bookingsData?.map(b => b.id) || [];
+      
+      const { data: bookingServicesData, error: servicesError } = await supabase
+        .from('booking_services')
+        .select(`
+          *,
+          venue_services(name, service_type)
+        `)
+        .in('booking_id', bookingIds);
+
+      if (servicesError) {
+        console.error('❌ Booking services query error:', servicesError);
+        throw servicesError;
+      }
+
+      // Combine the data
+      const data = bookingsData?.map(booking => ({
+        ...booking,
+        booking_services: bookingServicesData?.filter(bs => bs.booking_id === booking.id) || []
+      }));
+
       console.log('📊 Raw booking query result:', { 
         dataCount: data?.length, 
-        error, 
-        allBookings: data
+        bookingsError: bookingsError || servicesError,
+        query: 'bookings with booking_services join'
       });
+
+      // Debug: Check the RAW query result before any filtering
+      console.log('🔍 First 3 bookings raw data:', data?.slice(0, 3));
 
       // Debug: Check booking_services data structure
       data?.forEach((booking, index) => {
-        console.log(`🔍 Booking ${index + 1}:`, {
-          id: booking.id,
-          booking_services: booking.booking_services,
-          booking_services_count: booking.booking_services?.length || 0,
-          venues: booking.venues
-        });
-        
-        booking.booking_services?.forEach((service, serviceIndex) => {
-          console.log(`  📋 Service ${serviceIndex + 1}:`, {
-            service_id: service.service_id,
-            table_configurations: service.table_configurations,
-            table_configs_type: typeof service.table_configurations,
-            table_configs_length: Array.isArray(service.table_configurations) ? service.table_configurations.length : 'not array'
+        if (index < 3) { // Only log first 3 to avoid spam
+          console.log(`🔍 Booking ${index + 1} (${booking.id}):`, {
+            id: booking.id,
+            booking_services: booking.booking_services,
+            booking_services_count: booking.booking_services?.length || 0,
+            venues: booking.venues,
+            hasVenueServices: !!booking.venue_services
           });
-        });
+        }
       });
-
-      if (error) {
-        console.error('❌ Booking query error:', error);
-        throw error;
-      }
 
       // Filter bookings that belong to this partner
       const partnerBookings = data?.filter(booking => {
