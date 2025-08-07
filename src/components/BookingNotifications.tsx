@@ -62,6 +62,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
   const [pendingBookings, setPendingBookings] = useState<PendingBooking[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<PendingBooking | null>(null);
   const [processing, setProcessing] = useState<string | null>(null);
+  const [showAllBookings, setShowAllBookings] = useState(false);
 
   useEffect(() => {
     console.log('🔄 BookingNotifications useEffect triggered:', {
@@ -513,7 +514,7 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
         <CardContent>
           {pendingBookings.length > 0 ? (
             <div className="space-y-4">
-              {pendingBookings.slice(0, 3).map((booking) => (
+              {pendingBookings.slice(0, showAllBookings ? pendingBookings.length : 3).map((booking) => (
                 <div
                   key={booking.id}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
@@ -527,7 +528,6 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                     <div className="text-sm text-muted-foreground">
                       <p>{booking.user_email}</p>
                       <p>{formatDate(booking.booking_date)} at {formatTime(booking.booking_time)}</p>
-                      <p>{getTotalTables(booking)} table{getTotalTables(booking) !== 1 ? 's' : ''} • {booking.guest_count} guest{booking.guest_count !== 1 ? 's' : ''}</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -536,9 +536,15 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                 </div>
               ))}
               {pendingBookings.length > 3 && (
-                <p className="text-sm text-muted-foreground text-center pt-2">
-                  +{pendingBookings.length - 3} more pending requests
-                </p>
+                <button
+                  onClick={() => setShowAllBookings(!showAllBookings)}
+                  className="text-sm text-primary hover:text-primary/80 text-center pt-2 w-full font-medium transition-colors"
+                >
+                  {showAllBookings 
+                    ? `Show less (${pendingBookings.length - 3} hidden)` 
+                    : `+${pendingBookings.length - 3} more pending requests`
+                  }
+                </button>
               )}
             </div>
           ) : (

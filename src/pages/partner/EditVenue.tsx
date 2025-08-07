@@ -550,24 +550,7 @@ const EditVenue = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="district">District *</Label>
-                <Select 
-                  value={venue.district} 
-                  onValueChange={(value) => setVenue({...venue, district: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select district" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tbilisiDistricts.map((district) => (
-                      <SelectItem key={district} value={district}>
-                        {district}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+
 
               {/* Location Picker */}
               <LocationPicker 

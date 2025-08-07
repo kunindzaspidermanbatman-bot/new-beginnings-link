@@ -187,7 +187,8 @@ const VenueCard = ({ venue, compact = false, searchMode = false, onHover }: Venu
       className="group"
       onMouseEnter={() => onHover?.(venue)}
     >
-      <Card className="venue-card-new overflow-hidden bg-white border-0 shadow-lg hover:shadow-2xl transition-all duration-500 ease-out">
+      <Link to={`/venue/${venue.id}`} className="block">
+        <Card className="venue-card-new overflow-hidden bg-white border-0 shadow-lg hover:shadow-2xl transition-all duration-500 ease-out cursor-pointer">
         {/* Image Carousel Section */}
         <div className="relative">
           <div className={`relative overflow-hidden ${searchMode ? 'aspect-[4/3]' : 'aspect-[8/5]'}`}>
@@ -213,7 +214,11 @@ const VenueCard = ({ venue, compact = false, searchMode = false, onHover }: Venu
                 {venueImages.map((_, index) => (
                   <button
                     key={index}
-                    onClick={() => setCurrentImageIndex(index)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setCurrentImageIndex(index);
+                    }}
                     className={`rounded-full transition-all duration-200 ${
                       searchMode 
                         ? `w-1 h-1 ${index === currentImageIndex ? 'bg-white w-2' : 'bg-white/60'}`
@@ -228,13 +233,21 @@ const VenueCard = ({ venue, compact = false, searchMode = false, onHover }: Venu
             {venueImages.length > 1 && (
               <>
                 <Button
-                  onClick={handlePrevious}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handlePrevious();
+                  }}
                   className={`absolute top-1/2 -translate-y-1/2 glass-overlay action-button border-0 p-0 ${searchMode ? 'left-0.5 h-5 w-5' : 'left-1 h-6 w-6'}`}
                 >
                   <ArrowLeft className={`${searchMode ? 'h-2.5 w-2.5' : 'h-3 w-3'}`} />
                 </Button>
                 <Button
-                  onClick={handleNext}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleNext();
+                  }}
                   className={`absolute top-1/2 -translate-y-1/2 glass-overlay action-button border-0 p-0 ${searchMode ? 'right-0.5 h-5 w-5' : 'right-1 h-6 w-6'}`}
                 >
                   <ArrowRight className={`${searchMode ? 'h-2.5 w-2.5' : 'h-3 w-3'}`} />
@@ -338,6 +351,7 @@ const VenueCard = ({ venue, compact = false, searchMode = false, onHover }: Venu
         {/* Hover Effect Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-lg" />
       </Card>
+      </Link>
     </motion.div>
   );
 };
