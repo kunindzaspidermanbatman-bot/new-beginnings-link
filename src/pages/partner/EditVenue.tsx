@@ -30,7 +30,7 @@ import { GuestPricingManager } from '@/components/GuestPricingManager';
 
 import { PageLoading } from '@/components/ui/loading';
 
-type ServiceType = 'PC Gaming' | 'PlayStation 5' | 'Billiards' | 'Table Tennis';
+import { SERVICE_CATALOG, ServiceType } from '@/constants/services';
 
 interface VenueService {
   id?: string;
@@ -383,7 +383,7 @@ const EditVenue = () => {
 
   const addService = () => {
     setServices([...services, {
-      service_type: 'PC Gaming',
+      service_type: SERVICE_CATALOG[0] as ServiceType,
       price: 0,
       images: [],
       service_games: [],
@@ -669,10 +669,9 @@ const EditVenue = () => {
                             <SelectValue placeholder="Select service type" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="PC Gaming">PC Gaming</SelectItem>
-                            <SelectItem value="PlayStation 5">PlayStation 5</SelectItem>
-                            <SelectItem value="Billiards">Billiards</SelectItem>
-                            <SelectItem value="Table Tennis">Table Tennis</SelectItem>
+                            {SERVICE_CATALOG.map((s) => (
+                              <SelectItem key={s} value={s}>{s}</SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>

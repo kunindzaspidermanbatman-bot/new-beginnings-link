@@ -20,8 +20,7 @@ import { ServiceImageUpload } from '@/components/ServiceImageUpload';
 import GoogleLocationPicker from '@/components/GoogleLocationPicker';
 import { GuestPricingManager } from '@/components/GuestPricingManager';
 
-
-type ServiceType = 'PC Gaming' | 'PlayStation 5' | 'Billiards' | 'Table Tennis';
+import { SERVICE_CATALOG, ServiceType } from '@/constants/services';
 
 interface VenueService {
   service_type: ServiceType;
@@ -187,7 +186,7 @@ const AddVenue = () => {
 
   const addService = () => {
     setServices([...services, {
-      service_type: 'PC Gaming',
+      service_type: SERVICE_CATALOG[0] as ServiceType,
       price: 0,
       images: [],
       discount_percentage: 0,
@@ -444,10 +443,9 @@ const AddVenue = () => {
                                 <SelectValue placeholder="Select service type" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="PC Gaming">PC Gaming</SelectItem>
-                                <SelectItem value="PlayStation 5">PlayStation 5</SelectItem>
-                                <SelectItem value="Billiards">Billiards</SelectItem>
-                                <SelectItem value="Table Tennis">Table Tennis</SelectItem>
+                                {SERVICE_CATALOG.map((s) => (
+                                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </div>
