@@ -35,11 +35,11 @@ import { SERVICE_CATALOG, ServiceType, isPerTableService } from '@/constants/ser
 interface VenueService {
   id?: string;
   service_type: ServiceType;
-  price: number;
+  price: number | null;
   images: string[];
   service_games?: string[];
-  guest_pricing_rules: Array<{ maxGuests: number; price: number }>;
-  max_tables?: number;
+  guest_pricing_rules: Array<{ maxGuests: number; price: number | null }>;
+  max_tables?: number | null;
   overall_discount_percent?: number;
   free_hour_discounts?: Array<{ thresholdHours: number; freeHours: number }>;
   group_discounts?: Array<{ minGuests: number; discountPercent: number }>;
@@ -164,13 +164,13 @@ const EditVenue = () => {
        const mappedServices = servicesData?.map(service => ({
          id: service.id,
          service_type: (service as any).service_type || 'PC Gaming',
-         price: service.price,
+         price: service.price as number | null,
          images: service.images || [],
          service_games: (service as any).service_games || [],
          guest_pricing_rules: Array.isArray((service as any).guest_pricing_rules) 
-           ? (service as any).guest_pricing_rules as Array<{ maxGuests: number; price: number }>
+           ? (service as any).guest_pricing_rules as Array<{ maxGuests: number; price: number | null }>
            : [],
-         max_tables: (service as any).max_tables || 1,
+         max_tables: (service as any).max_tables as number | null,
          overall_discount_percent: (service as any).overall_discount_percent || 0,
          free_hour_discounts: (service as any).free_hour_discounts || [],
          group_discounts: (service as any).group_discounts || [],
@@ -325,14 +325,14 @@ const EditVenue = () => {
           // Update existing service
           const { error: updateError } = await supabase
             .from('venue_services')
-             .update({
+              .update({
                name: service.service_type,
-               price: service.price,
+                price: service.price ?? 0,
                images: service.images,
                service_type: service.service_type,
                service_games: service.service_games || [],
-               guest_pricing_rules: service.guest_pricing_rules || [],
-               max_tables: service.max_tables || 1,
+                guest_pricing_rules: service.guest_pricing_rules || [],
+                max_tables: service.max_tables ?? 1,
                overall_discount_percent: serviceOverallDiscount,
                free_hour_discounts: serviceFreeHourDiscounts,
                group_discounts: serviceGroupDiscounts,
@@ -345,15 +345,15 @@ const EditVenue = () => {
           // Create new service
           const { error: insertError } = await supabase
             .from('venue_services')
-             .insert({
+              .insert({
                venue_id: venueId,
                name: service.service_type,
-               price: service.price,
+                price: service.price ?? 0,
                images: service.images,
                service_type: service.service_type,
                service_games: service.service_games || [],
-               guest_pricing_rules: service.guest_pricing_rules || [],
-               max_tables: service.max_tables || 1,
+                guest_pricing_rules: service.guest_pricing_rules || [],
+                max_tables: service.max_tables ?? 1,
                overall_discount_percent: serviceOverallDiscount,
                free_hour_discounts: serviceFreeHourDiscounts,
                group_discounts: serviceGroupDiscounts,
@@ -761,8 +761,16 @@ const EditVenue = () => {
                             type="number"
                             min="1"
                             max="20"
-                            value={service.max_tables || 1}
-                            onChange={(e) => updateService(index, 'max_tables', Math.max(1, parseInt(e.target.value) || 1))}
+                            value={service.max_tables ?? ''}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              if (raw === '') {
+                                updateService(index, 'max_tables', null);
+                              } else {
+                                const parsed = parseInt(raw, 10);
+                                updateService(index, 'max_tables', Number.isNaN(parsed) ? null : parsed);
+                              }
+                            }}
                             className="w-32"
                           />
                           <p className="text-sm text-muted-foreground">
@@ -774,12 +782,20 @@ const EditVenue = () => {
                         {isPerTableService(service.service_type) ? (
                           <div className="space-y-2">
                             <Label>Price per Table (GEL)</Label>
-                            <Input
+                          <Input
                               type="number"
                               min="0"
                               step="0.01"
-                              value={service.price || 0}
-                              onChange={(e) => updateService(index, 'price', parseFloat(e.target.value) || 0)}
+                            value={service.price ?? ''}
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              if (raw === '') {
+                                updateService(index, 'price', null);
+                              } else {
+                                const parsed = parseFloat(raw);
+                                updateService(index, 'price', Number.isNaN(parsed) ? null : parsed);
+                              }
+                            }}
                               className="w-48"
                             />
                             <p className="text-sm text-muted-foreground">For PC Gaming and Billiards, pricing is per table per hour.</p>

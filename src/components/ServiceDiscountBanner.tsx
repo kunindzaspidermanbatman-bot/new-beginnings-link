@@ -15,23 +15,27 @@ const ServiceDiscountBanner = ({
   selectedService,
   className = "" 
 }: ServiceDiscountBannerProps) => {
-  // Get services with discounts (assuming they have a discount_percentage property)
-  const servicesWithDiscounts = services?.filter(service => {
-    // For now, we'll check if the service has a special offer or price reduction
-    // This will be enhanced when we add service-level discount support
-    return service.price > 0;
-  }) || [];
+  // Determine whether a service actually has any discount configured
+  const hasServiceDiscount = (service: VenueService): boolean => {
+    const hasOverall = !!service.overall_discount_percent && service.overall_discount_percent > 0;
+    const hasGroup = Array.isArray(service.group_discounts)
+      && service.group_discounts.some(d => (d?.discountPercent || 0) > 0);
+    const hasTimeslot = Array.isArray(service.timeslot_discounts)
+      && service.timeslot_discounts.some(d => (d?.discountPercent || 0) > 0);
+    const hasFreeHours = Array.isArray(service.free_hour_discounts)
+      && service.free_hour_discounts.some(d => (d?.freeHours || 0) > 0);
+    return hasOverall || hasGroup || hasTimeslot || hasFreeHours;
+  };
 
-  // If no services or no services with potential discounts, don't show banner
+  const servicesWithDiscounts = (services || []).filter(hasServiceDiscount);
+
+  // If no services or no services with real discounts, don't show banner
   if (!services || services.length === 0 || servicesWithDiscounts.length === 0) {
     return null;
   }
 
-  const hasActiveDiscounts = servicesWithDiscounts.some(service => service.price > 0);
-  
-  if (!hasActiveDiscounts) {
-    return null;
-  }
+  const hasActiveDiscounts = servicesWithDiscounts.length > 0;
+  if (!hasActiveDiscounts) return null;
 
   return (
     <Card className={`border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5 ${className}`}>
@@ -46,17 +50,39 @@ const ServiceDiscountBanner = ({
           </div>
           
           <div className="flex flex-wrap gap-2">
-            {servicesWithDiscounts.slice(0, 3).map((service) => (
-              <Badge 
-                key={service.id} 
-                variant="secondary" 
-                className="bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-              >
-                <Percent className="h-3 w-3 mr-1" />
-                {service.name} {getServiceDisplayPrice(service)}
-              </Badge>
-            ))}
-            
+            {servicesWithDiscounts.slice(0, 3).map((service) => {
+              // Show a concise label for the strongest discount type
+              const labels: string[] = [];
+              if (service.overall_discount_percent && service.overall_discount_percent > 0) {
+                labels.push(`${service.overall_discount_percent}% off`);
+              }
+              if (Array.isArray(service.group_discounts) && service.group_discounts.length > 0) {
+                const maxGroup = Math.max(...service.group_discounts.map(d => d.discountPercent || 0));
+                if (maxGroup > 0) labels.push(`Up to ${maxGroup}% group`);
+              }
+              if (Array.isArray(service.timeslot_discounts) && service.timeslot_discounts.length > 0) {
+                const maxSlot = Math.max(...service.timeslot_discounts.map(d => d.discountPercent || 0));
+                if (maxSlot > 0) labels.push(`${maxSlot}% timeslot`);
+              }
+              if (Array.isArray(service.free_hour_discounts) && service.free_hour_discounts.length > 0) {
+                const maxFree = Math.max(...service.free_hour_discounts.map(d => d.freeHours || 0));
+                if (maxFree > 0) labels.push(`${maxFree} free hour${maxFree > 1 ? 's' : ''}`);
+              }
+
+              const label = labels[0] || 'Special offer';
+
+              return (
+                <Badge 
+                  key={service.id} 
+                  variant="secondary" 
+                  className="bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                >
+                  <Percent className="h-3 w-3 mr-1" />
+                  {service.name} · {label}
+                </Badge>
+              );
+            })}
+
             {servicesWithDiscounts.length > 3 && (
               <Badge variant="outline" className="border-primary/30 text-primary">
                 +{servicesWithDiscounts.length - 3} more

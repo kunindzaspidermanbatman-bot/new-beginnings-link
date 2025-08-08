@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export interface GuestPricingRule {
   maxGuests: number;
-  price: number;
+  price: number | null;
 }
 
 interface GuestPricingManagerProps {
@@ -22,7 +22,7 @@ export const GuestPricingManager = ({ rules, onRulesChange }: GuestPricingManage
 
   // Initialize with 1 guest if no rules exist
   if (rules.length === 0) {
-    onRulesChange([{ maxGuests: 1, price: 0 }]);
+    onRulesChange([{ maxGuests: 1, price: null }]);
   }
 
   // Calculate the next guest count to add
@@ -34,7 +34,7 @@ export const GuestPricingManager = ({ rules, onRulesChange }: GuestPricingManage
 
   const addPricingRule = () => {
     const nextCount = getNextGuestCount();
-    const newRule = { maxGuests: nextCount, price: 0 };
+    const newRule = { maxGuests: nextCount, price: null };
     const updatedRules = [...rules, newRule].sort((a, b) => a.maxGuests - b.maxGuests);
     onRulesChange(updatedRules);
     setNextGuestCount(nextCount + 1);
@@ -79,8 +79,16 @@ export const GuestPricingManager = ({ rules, onRulesChange }: GuestPricingManage
                 type="number"
                 min="0"
                 step="0.01"
-                value={rule.price}
-                onChange={(e) => updateRule(index, 'price', parseFloat(e.target.value) || 0)}
+                value={rule.price ?? ''}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === '') {
+                    updateRule(index, 'price', null as unknown as number);
+                  } else {
+                    const parsed = parseFloat(raw);
+                    updateRule(index, 'price', Number.isNaN(parsed) ? (null as unknown as number) : parsed);
+                  }
+                }}
                 className="mt-1"
                 placeholder="Enter price"
               />

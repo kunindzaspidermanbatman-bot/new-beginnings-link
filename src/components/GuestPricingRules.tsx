@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export interface GuestPricingRule {
   maxGuests: number;
-  price: number;
+  price: number | null;
 }
 
 interface GuestPricingRulesProps {
@@ -27,13 +27,13 @@ export const GuestPricingRules = ({
   onMaxTablesChange 
 }: GuestPricingRulesProps) => {
   const { toast } = useToast();
-  const [newRule, setNewRule] = useState({ maxGuests: 1, price: 0 });
+  const [newRule, setNewRule] = useState({ maxGuests: 1, price: null as number | null });
   
   // Use either prop for updating rules
   const updateRules = onRulesChange || onChange;
 
   const addRule = () => {
-    if (newRule.maxGuests <= 0 || newRule.price < 0) {
+    if (newRule.maxGuests <= 0 || (newRule.price ?? 0) < 0) {
       toast({
         title: "Invalid rule",
         description: "Please enter valid guest count and price values",
@@ -54,7 +54,7 @@ export const GuestPricingRules = ({
 
     const updatedRules = [...rules, newRule].sort((a, b) => a.maxGuests - b.maxGuests);
     updateRules?.(updatedRules);
-    setNewRule({ maxGuests: 1, price: 0 });
+    setNewRule({ maxGuests: 1, price: null });
   };
 
   const removeRule = (index: number) => {
@@ -62,7 +62,7 @@ export const GuestPricingRules = ({
     updateRules?.(updatedRules);
   };
 
-  const updateRule = (index: number, field: 'maxGuests' | 'price', value: number) => {
+  const updateRule = (index: number, field: 'maxGuests' | 'price', value: number | null) => {
     const updatedRules = rules.map((rule, i) => 
       i === index ? { ...rule, [field]: value } : rule
     );
@@ -105,22 +105,38 @@ export const GuestPricingRules = ({
               <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
                 <div className="flex-1">
                   <Label className="text-xs text-muted-foreground">Max Guests</Label>
-                  <Input
+                   <Input
                     type="number"
                     min="1"
-                    value={rule.maxGuests}
-                    onChange={(e) => updateRule(index, 'maxGuests', parseInt(e.target.value) || 1)}
+                     value={rule.maxGuests}
+                     onChange={(e) => {
+                       const raw = e.target.value;
+                       if (raw === '') {
+                         updateRule(index, 'maxGuests', null as unknown as number);
+                       } else {
+                         const parsed = parseInt(raw, 10);
+                         updateRule(index, 'maxGuests', Number.isNaN(parsed) ? (null as unknown as number) : parsed);
+                       }
+                     }}
                     className="mt-1"
                   />
                 </div>
                 <div className="flex-1">
                   <Label className="text-xs text-muted-foreground">Price (GEL)</Label>
-                  <Input
+                   <Input
                     type="number"
                     min="0"
                     step="0.01"
-                    value={rule.price}
-                    onChange={(e) => updateRule(index, 'price', parseFloat(e.target.value) || 0)}
+                     value={rule.price ?? ''}
+                     onChange={(e) => {
+                       const raw = e.target.value;
+                       if (raw === '') {
+                         updateRule(index, 'price', null);
+                       } else {
+                         const parsed = parseFloat(raw);
+                         updateRule(index, 'price', Number.isNaN(parsed) ? null : parsed);
+                       }
+                     }}
                     className="mt-1"
                   />
                 </div>
@@ -140,22 +156,38 @@ export const GuestPricingRules = ({
           <div className="flex items-end gap-3 p-3 border-2 border-dashed rounded-lg">
             <div className="flex-1">
               <Label className="text-xs text-muted-foreground">Max Guests</Label>
-              <Input
+               <Input
                 type="number"
                 min="1"
-                value={newRule.maxGuests}
-                onChange={(e) => setNewRule(prev => ({ ...prev, maxGuests: parseInt(e.target.value) || 1 }))}
+                 value={newRule.maxGuests}
+                 onChange={(e) => {
+                   const raw = e.target.value;
+                   if (raw === '') {
+                     setNewRule(prev => ({ ...prev, maxGuests: 1 }));
+                   } else {
+                     const parsed = parseInt(raw, 10);
+                     setNewRule(prev => ({ ...prev, maxGuests: Number.isNaN(parsed) ? 1 : parsed }));
+                   }
+                 }}
                 className="mt-1"
               />
             </div>
             <div className="flex-1">
               <Label className="text-xs text-muted-foreground">Price (GEL)</Label>
-              <Input
+               <Input
                 type="number"
                 min="0"
                 step="0.01"
-                value={newRule.price}
-                onChange={(e) => setNewRule(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                 value={newRule.price ?? ''}
+                 onChange={(e) => {
+                   const raw = e.target.value;
+                   if (raw === '') {
+                     setNewRule(prev => ({ ...prev, price: null }));
+                   } else {
+                     const parsed = parseFloat(raw);
+                     setNewRule(prev => ({ ...prev, price: Number.isNaN(parsed) ? null : parsed }));
+                   }
+                 }}
                 className="mt-1"
               />
             </div>

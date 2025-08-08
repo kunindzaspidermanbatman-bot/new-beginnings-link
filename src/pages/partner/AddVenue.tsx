@@ -24,12 +24,12 @@ import { SERVICE_CATALOG, ServiceType, isPerTableService } from '@/constants/ser
 
 interface VenueService {
   service_type: ServiceType;
-  price: number;
+  price: number | null;
   images: string[];
   discount_percentage: number;
   service_games: string[];
-  guest_pricing_rules: Array<{ maxGuests: number; price: number }>;
-  max_tables: number;
+  guest_pricing_rules: Array<{ maxGuests: number; price: number | null }>;
+  max_tables: number | null;
 }
 
 interface VenueData {
@@ -69,12 +69,12 @@ const AddVenue = () => {
   const [loading, setLoading] = useState(false);
   const [services, setServices] = useState<VenueService[]>([{
     service_type: 'PC Gaming',
-    price: 0,
+    price: null,
     images: [],
     discount_percentage: 0,
     service_games: [],
     guest_pricing_rules: [],
-    max_tables: 1
+    max_tables: null
   }]);
   const [venue, setVenue] = useState<VenueData>({
     name: '',
@@ -119,13 +119,13 @@ const AddVenue = () => {
       const perTable = isPerTableService(service.service_type);
 
       if (perTable) {
-        const hasValidPerTable = service.price > 0 && (service.max_tables || 0) > 0;
+        const hasValidPerTable = (service.price ?? 0) > 0 && (service.max_tables ?? 0) > 0;
         return hasServiceType && hasValidPerTable;
       }
 
       const hasGuestPricing = service.guest_pricing_rules && 
                              service.guest_pricing_rules.length > 0 && 
-                             service.guest_pricing_rules.every(rule => rule.price > 0 && rule.maxGuests > 0);
+                             service.guest_pricing_rules.every(rule => (rule.price ?? 0) > 0 && rule.maxGuests > 0);
       return hasServiceType && hasGuestPricing;
     });
 
@@ -157,12 +157,12 @@ const AddVenue = () => {
           const { data, error } = await supabase.from('venue_services').insert({
             venue_id: venueData.id,
             name: service.service_type,
-            price: service.price,
+            price: service.price ?? 0,
             images: service.images,
             service_type: service.service_type,
             service_games: service.service_games || [],
             guest_pricing_rules: service.guest_pricing_rules || [],
-            max_tables: service.max_tables || 1
+            max_tables: service.max_tables ?? 1
           });
           
           if (error) {
@@ -540,8 +540,16 @@ const AddVenue = () => {
                               type="number"
                               min="1"
                               max="20"
-                              value={service.max_tables || 1}
-                              onChange={(e) => updateService(index, 'max_tables', Math.max(1, parseInt(e.target.value) || 1))}
+                              value={service.max_tables ?? ''}
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                if (raw === '') {
+                                  updateService(index, 'max_tables', null);
+                                } else {
+                                  const parsed = parseInt(raw, 10);
+                                  updateService(index, 'max_tables', Number.isNaN(parsed) ? null : parsed);
+                                }
+                              }}
                               className="w-32"
                             />
                             <p className="text-sm text-muted-foreground">
@@ -557,8 +565,16 @@ const AddVenue = () => {
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                value={service.price || 0}
-                                onChange={(e) => updateService(index, 'price', parseFloat(e.target.value) || 0)}
+                                value={service.price ?? ''}
+                                onChange={(e) => {
+                                  const raw = e.target.value;
+                                  if (raw === '') {
+                                    updateService(index, 'price', null);
+                                  } else {
+                                    const parsed = parseFloat(raw);
+                                    updateService(index, 'price', Number.isNaN(parsed) ? null : parsed);
+                                  }
+                                }}
                                 className="w-48"
                               />
                               <p className="text-sm text-muted-foreground">For PC Gaming and Billiards, pricing is per table per hour.</p>
