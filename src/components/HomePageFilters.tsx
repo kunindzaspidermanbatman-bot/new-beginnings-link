@@ -18,6 +18,7 @@ interface FilterState {
 interface HomePageFiltersProps {
   onFiltersChange?: (filters: FilterState) => void;
   className?: string;
+  initialFilters?: FilterState;
 }
 
 const categories = [
@@ -67,7 +68,7 @@ const gameOptions = [
   "Rainbow Six Siege"
 ];
 
-const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersProps) => {
+const HomePageFilters = ({ onFiltersChange, className = "", initialFilters }: HomePageFiltersProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [gameSearchQuery, setGameSearchQuery] = useState("");
   const [tempFilters, setTempFilters] = useState<FilterState>({
@@ -92,6 +93,17 @@ const HomePageFilters = ({ onFiltersChange, className = "" }: HomePageFiltersPro
       });
     }
   }, [isExpanded]);
+
+  // Initialize applied filters from props (used to reflect URL-provided filters)
+  useEffect(() => {
+    if (initialFilters) {
+      setAppliedFilters({
+        category: initialFilters.category ?? [],
+        location: initialFilters.location ?? [],
+        games: initialFilters.games ?? []
+      });
+    }
+  }, [initialFilters]);
 
   const handleTempFilterChange = (key: keyof FilterState, value: string | string[]) => {
     setTempFilters(prev => ({ ...prev, [key]: value }));

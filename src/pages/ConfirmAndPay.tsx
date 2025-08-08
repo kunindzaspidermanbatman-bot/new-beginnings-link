@@ -351,6 +351,14 @@ const ConfirmAndPay = () => {
     });
   };
 
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep((prev) => Math.max(1, prev - 1));
+      return;
+    }
+    navigate(-1);
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return format(date, "EEEE, MMM d, yyyy");
@@ -434,18 +442,23 @@ const ConfirmAndPay = () => {
   return (
     <Elements stripe={stripePromise}>
       <div className="min-h-screen bg-background">
+        {/* Floating back-to-venue arrow (non-animated, high contrast) */}
+        <div className="fixed left-4 top-24 z-50" aria-hidden="false">
+          <Button
+            variant="default"
+            size="icon-lg"
+            onClick={() => navigate(`/venue/${bookingData.venueId}` , { state: { bookingData } })}
+            className="rounded-full shadow-xl ring-1 ring-primary/30 hover:bg-primary/80 hover:shadow-primary/30 hover:scale-100 active:scale-100"
+            aria-label="Back to venue"
+            title="Back to venue"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </div>
         {/* Header */}
         <div className="border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate(-1)}
-                className="rounded-full"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
               <h1 className="text-2xl font-bold gradient-text">Confirm and pay</h1>
             </div>
           </div>
@@ -523,12 +536,24 @@ const ConfirmAndPay = () => {
                     </div>
                   </div>
                   {currentStep === 2 && (
-                    <Button 
-                      onClick={handleContinue}
-                      className="pulse-glow"
-                    >
-                      Continue
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline"
+                        size="icon"
+                        onClick={handleBack}
+                        aria-label="Previous step"
+                        title="Previous step"
+                        className="rounded-full"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        onClick={handleContinue}
+                        className="pulse-glow"
+                      >
+                        Continue
+                      </Button>
+                    </div>
                   )}
                 </div>
                  {currentStep === 2 && (
@@ -560,16 +585,30 @@ const ConfirmAndPay = () => {
               currentStep === 3 ? 'border-primary/50' : 'border-border/30 opacity-60'
             }`}>
               <CardContent className="p-6">
-                <div className="flex items-center gap-4 mb-4">
+                <div className="flex items-center gap-4 mb-4 justify-between">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                     currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                   }`}>
                     3
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-semibold text-foreground">Complete Payment</h3>
                     <p className="text-sm text-muted-foreground">Choose your payment method and complete booking</p>
                   </div>
+                  {currentStep === 3 && !bookingComplete && (
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline"
+                        size="icon"
+                        onClick={handleBack}
+                        aria-label="Previous step"
+                        title="Previous step"
+                        className="rounded-full"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 
                  {currentStep === 3 && !bookingComplete && (
@@ -603,6 +642,7 @@ const ConfirmAndPay = () => {
           <div className="lg:col-span-5">
             <Card className="glass-effect border-primary/20 sticky top-24">
               <CardContent className="p-6 space-y-6">
+                {/* Removed extra back button to keep only the floating arrow */}
                 
                 {/* Venue Info */}
                 <div className="flex gap-4">

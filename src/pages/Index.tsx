@@ -9,11 +9,12 @@ import HomePageFilters from "@/components/HomePageFilters";
 import { useVenues, useVenueServices } from "@/hooks/useVenues";
 import { categories } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Star, Zap, Trophy } from "lucide-react";
+import { ArrowRight, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import PrivacyPolicyDialog from "@/components/PrivacyPolicyDialog";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const { data: venues, isLoading } = useVenues();
@@ -24,6 +25,7 @@ const Index = () => {
     games: []
   });
   const [privacyDialogOpen, setPrivacyDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Fetch all venue services for filtering
   const { data: allVenueServices } = useQuery({
@@ -129,11 +131,33 @@ const Index = () => {
       {/* Enhanced Featured Venues Section */}
       <section className="section-padding bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Filter Component - positioned on the left above venues */}
-          <div className="flex justify-start mb-6 sm:mb-8">
+          {/* Filter Component with Explore on Map button */}
+          <div className="flex items-center gap-3 mb-6 sm:mb-8">
             <HomePageFilters 
               onFiltersChange={handleFiltersChange} 
             />
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-2 border-primary/30 hover:border-primary hover:bg-primary/5 transition-colors"
+              onClick={() => {
+                const params = new URLSearchParams();
+                if (currentFilters.category?.length) {
+                  params.set('category', currentFilters.category.join(','));
+                }
+                if (currentFilters.location?.length) {
+                  params.set('location', currentFilters.location.join(','));
+                }
+                if (currentFilters.games?.length) {
+                  params.set('games', currentFilters.games.join(','));
+                }
+                params.set('view', 'split');
+                navigate(`/search?${params.toString()}`);
+              }}
+            >
+              <MapPin className="h-5 w-5 mr-2" />
+              Explore on Map
+            </Button>
           </div>
 
           {isLoading ? (

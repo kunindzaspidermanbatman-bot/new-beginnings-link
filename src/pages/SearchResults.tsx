@@ -12,6 +12,7 @@ import type { Venue } from "@/hooks/useVenues";
 import HomePageFilters from "@/components/HomePageFilters";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useLocation } from "react-router-dom";
 
 // Generate stable coordinates for venues (same logic as AirbnbStyleMap)
 const getVenueCoordinates = (venue: Venue) => {
@@ -57,6 +58,7 @@ const SearchResults = () => {
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
   const { getCurrentLocation, loading: locationLoading, error: locationError } = useGeolocation();
+  const routerLocation = useLocation();
   
   // Filter state management
   const [filteredVenues, setFilteredVenues] = useState<Venue[]>([]);
@@ -83,6 +85,36 @@ const SearchResults = () => {
   useEffect(() => {
     setFilteredVenues(venues || []);
   }, [venues]);
+
+  // Parse URL params for view and filters, and apply when data is ready
+  useEffect(() => {
+    const params = new URLSearchParams(routerLocation.search);
+    const viewParam = params.get('view');
+    if (viewParam === 'map' || viewParam === 'list' || viewParam === 'split') {
+      setViewMode(viewParam);
+    }
+
+    const parseList = (value: string | null) =>
+      value && value.trim().length > 0
+        ? value.split(',').map(v => v.trim()).filter(Boolean)
+        : [];
+
+    const parsed = {
+      category: parseList(params.get('category')) as string[],
+      location: parseList(params.get('location')) as string[],
+      games: parseList(params.get('games')) as string[]
+    };
+
+    // Only update if there is at least one filter present
+    if (parsed.category.length || parsed.location.length || parsed.games.length) {
+      setCurrentFilters(parsed as unknown as { category: []; location: []; games: [] });
+      // Apply when data is available
+      if (venues && allVenueServices) {
+        handleFiltersChange(parsed as { category: string[]; location: string[]; games: string[] });
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routerLocation.search, venues, allVenueServices]);
 
   // Filter venues based on map bounds when in split or map view
   const filteredVenuesMemo = useMemo(() => {
@@ -337,7 +369,8 @@ const SearchResults = () => {
         {/* Filter Component */}
         <div className="flex justify-start mb-6">
           <HomePageFilters 
-            onFiltersChange={handleFiltersChange} 
+            onFiltersChange={handleFiltersChange}
+            initialFilters={currentFilters as unknown as { category: string[]; location: string[]; games: string[] }} 
           />
         </div>
 

@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { CalendarIcon, X, Gamepad2 } from "lucide-react";
+import { CalendarIcon, CalendarCheck, X, Gamepad2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -29,9 +29,10 @@ interface BookingFormProps {
   defaultDiscount?: number;
   services?: VenueService[];
   selectedServiceId?: string;
+  initialBookingData?: any;
 }
 
-const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime, defaultDiscount = 0, services = [], selectedServiceId }: BookingFormProps) => {
+const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime, defaultDiscount = 0, services = [], selectedServiceId, initialBookingData }: BookingFormProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -63,6 +64,7 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialogService, setDialogService] = useState<VenueService | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDateOpen, setIsDateOpen] = useState(false);
   
 
   // Update serviceIds when selectedServiceId prop changes
@@ -71,6 +73,25 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
       setFormData(prev => ({ ...prev, serviceIds: [selectedServiceId] }));
     }
   }, [selectedServiceId, formData.serviceIds]);
+
+  // Hydrate form from initialBookingData when provided (e.g., returning from confirm & pay)
+  useEffect(() => {
+    if (!initialBookingData) return;
+    try {
+      const hydratedDate = initialBookingData.date ? new Date(initialBookingData.date) : undefined;
+      setFormData({
+        date: hydratedDate,
+        arrivalTime: initialBookingData.arrivalTime || '',
+        departureTime: initialBookingData.departureTime || '',
+        serviceBookings: initialBookingData.serviceBookings || [],
+        guests: initialBookingData.guests || 1,
+        serviceIds: initialBookingData.serviceIds || [],
+        specialRequests: initialBookingData.specialRequests || '',
+      });
+    } catch (_e) {
+      // If anything fails, keep defaults
+    }
+  }, [initialBookingData]);
 
   const selectedServices = services.filter(s => formData.serviceIds.includes(s.id));
   
@@ -542,8 +563,22 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium">Select Date</h3>
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  className="shadow-sm"
+                  onClick={() => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    setFormData(prev => ({ ...prev, date: today }));
+                  }}
+                >
+                  <CalendarCheck className="h-4 w-4 mr-2" />
+                  Today
+                </Button>
               </div>
-              <Popover>
+              <Popover open={isDateOpen} onOpenChange={setIsDateOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -563,6 +598,9 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                     onSelect={(date) => {
                       console.log('Calendar onSelect called with:', date);
                       setFormData(prev => ({ ...prev, date }));
+                      if (date) {
+                        setIsDateOpen(false);
+                      }
                     }}
                     disabled={(date) => {
                       const now = new Date();

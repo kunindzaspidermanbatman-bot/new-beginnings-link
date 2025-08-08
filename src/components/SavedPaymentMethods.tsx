@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -151,6 +151,15 @@ const SavedPaymentMethods = ({
     setShowAddForm(false);
     setCardElementReady(false);
   };
+
+  // Auto-select default (or first) payment method when none is selected yet
+  useEffect(() => {
+    if (!onPaymentMethodSelect) return;
+    if (selectedPaymentMethodId) return;
+    if (paymentMethods.length === 0) return;
+    const defaultMethod = paymentMethods.find((m) => m.is_default) || paymentMethods[0];
+    onPaymentMethodSelect(defaultMethod);
+  }, [paymentMethods, selectedPaymentMethodId, onPaymentMethodSelect]);
 
   if (loading) {
     return (

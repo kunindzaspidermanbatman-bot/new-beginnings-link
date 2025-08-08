@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +25,9 @@ import { useState } from "react";
 
 const VenuePage = () => {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const locationState = location.state as any;
+  const initialBookingData = locationState?.bookingData;
   const [selectedService, setSelectedService] = useState<VenueService | undefined>();
   
   const { data: venue, isLoading: venueLoading, error: venueError } = useVenue(id!);
@@ -196,6 +199,7 @@ const VenuePage = () => {
                   closingTime={venue.closing_time}
                   services={services}
                   selectedServiceId={selectedService?.id}
+                  initialBookingData={initialBookingData}
                 />
               </div>
 
