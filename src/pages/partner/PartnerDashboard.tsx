@@ -124,11 +124,7 @@ const PartnerDashboard = () => {
                       <div>
                         <h3 className="font-semibold text-lg text-gray-900 dark:text-white">{venue.name}</h3>
                         <p className="text-gray-600 dark:text-gray-400">{venue.location}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            Services Available
-                          </span>
-                        </div>
+                        {/* Removed services availability line as requested */}
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">

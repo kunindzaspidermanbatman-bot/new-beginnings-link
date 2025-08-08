@@ -440,6 +440,28 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
     return `${displayHour}:${minutes} ${ampm}`;
   };
 
+  const formatDateTime = (isoOrDate?: string | Date | null) => {
+    if (!isoOrDate) return '—';
+    try {
+      const date = typeof isoOrDate === 'string' ? new Date(isoOrDate) : isoOrDate;
+      return date.toLocaleString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+    } catch {
+      return '—';
+    }
+  };
+
+  const combineToDate = (dateString: string, timeString: string) => {
+    const time = timeString && timeString.length === 5 ? `${timeString}:00` : timeString || '00:00:00';
+    return new Date(`${dateString}T${time}`);
+  };
+
   const getTableConfigurations = (booking: PendingBooking) => {
     console.log('🔍 getTableConfigurations called with booking:', {
       bookingId: booking.id,
@@ -527,7 +549,12 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                     </div>
                     <div className="text-sm text-muted-foreground">
                       <p>{booking.user_email}</p>
-                      <p>{formatDate(booking.booking_date)} at {formatTime(booking.booking_time)}</p>
+                      <p>
+                        <span className="font-medium text-foreground">Scheduled:</span> {formatDateTime(combineToDate(booking.booking_date, booking.booking_time))}
+                      </p>
+                      <p>
+                        <span className="font-medium text-foreground">Requested:</span> {formatDateTime(booking.created_at)}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -617,11 +644,15 @@ const BookingNotifications: React.FC<BookingNotificationsProps> = ({ className }
                         <span className="text-muted-foreground">Date:</span>
                         <span className="font-medium">{new Date(selectedBooking.booking_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                       </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Requested At:</span>
+                        <span className="font-medium">{formatDateTime(selectedBooking.created_at)}</span>
+                      </div>
                     </div>
                     <div className="space-y-3">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Arrival Time:</span>
-                        <span className="font-medium">{formatTime(selectedBooking.booking_time)}</span>
+                        <span className="text-muted-foreground">Scheduled:</span>
+                        <span className="font-medium">{formatDateTime(combineToDate(selectedBooking.booking_date, selectedBooking.booking_time))}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Departure Time:</span>

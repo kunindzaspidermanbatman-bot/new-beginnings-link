@@ -88,6 +88,7 @@ export type Database = {
           special_requests: string | null
           status: string | null
           status_updated_at: string | null
+          paid_at: string | null
           total_price: number
           updated_at: string | null
           user_email: string | null
@@ -104,6 +105,7 @@ export type Database = {
           special_requests?: string | null
           status?: string | null
           status_updated_at?: string | null
+          paid_at?: string | null
           total_price: number
           updated_at?: string | null
           user_email?: string | null
@@ -120,6 +122,7 @@ export type Database = {
           special_requests?: string | null
           status?: string | null
           status_updated_at?: string | null
+          paid_at?: string | null
           total_price?: number
           updated_at?: string | null
           user_email?: string | null
