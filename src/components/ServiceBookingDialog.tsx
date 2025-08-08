@@ -41,9 +41,15 @@ interface ServiceBookingDialogProps {
   closingTime?: string;
   venueDate?: Date; // Add venue date prop
   initialData?: {
-    guests: number;
-    arrivalTime: string;
-    departureTime: string;
+  guests: number;
+  arrivalTime: string;
+  departureTime: string;
+  numberOfTables?: number;
+  tableConfigurations?: Array<{
+    table_number: number;
+    guest_count: number;
+  }>;
+  selectedGames?: string[];
   };
 }
 
@@ -75,9 +81,16 @@ const ServiceBookingDialog = ({
   // Set initial values when dialog opens with existing data
   useEffect(() => {
     if (isOpen && initialData) {
-      setTableConfigurations([{ table_number: 1, guest_count: initialData.guests }]);
+      if (initialData.tableConfigurations && initialData.tableConfigurations.length > 0) {
+        setNumberOfTables(initialData.numberOfTables || initialData.tableConfigurations.length);
+        setTableConfigurations(initialData.tableConfigurations);
+      } else {
+        setNumberOfTables(initialData.numberOfTables || 1);
+        setTableConfigurations([{ table_number: 1, guest_count: initialData.guests }]);
+      }
       setArrivalTime(initialData.arrivalTime);
       setDepartureTime(initialData.departureTime);
+      setSelectedGames(initialData.selectedGames || []);
     } else if (isOpen && !initialData) {
       // Reset to defaults when opening without initial data
       setNumberOfTables(1);

@@ -777,7 +777,7 @@ const ConfirmAndPay = () => {
                             </span>
                           </div>
                           {/* Show discount info for this service */}
-                          {booking.savings && booking.savings > 0 && (
+                          {(booking.savings ?? 0) > 0 && (
                             <div className="flex justify-between text-xs text-green-600 mt-1">
                               <span>Discount ({booking.appliedDiscounts?.join(', ')})</span>
                               <span>-{booking.savings.toFixed(2)} GEL</span>

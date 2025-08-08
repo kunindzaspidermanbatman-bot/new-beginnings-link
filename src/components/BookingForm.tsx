@@ -526,28 +526,40 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
     // Calculate total guests across all tables for this service
     const totalGuestsForService = data.tableConfigurations.reduce((sum, config) => sum + config.guest_count, 0);
     
-    setFormData(prev => ({
-      ...prev,
-      serviceIds: [...prev.serviceIds, data.service.id],
-      guests: totalGuestsForService, // Set to total guests across all tables
-      serviceBookings: [
-        ...prev.serviceBookings,
-        {
-          serviceId: data.service.id,
-          arrivalTime: data.arrivalTime,
-          departureTime: data.departureTime,
-          numberOfTables: data.numberOfTables,
-          tableConfigurations: data.tableConfigurations,
-          selectedGames: data.selectedGames,
-          // Store the pricing information from discount calculation
-          originalPrice: data.originalPrice,
-          finalPrice: data.finalPrice,
-          savings: data.savings,
-          appliedDiscounts: data.appliedDiscounts,
-          discountBreakdown: data.discountBreakdown
-        }
-      ]
-    }));
+    setFormData(prev => {
+      const existingBookingIndex = prev.serviceBookings.findIndex(sb => sb.serviceId === data.service.id);
+      const updatedBooking = {
+        serviceId: data.service.id,
+        arrivalTime: data.arrivalTime,
+        departureTime: data.departureTime,
+        numberOfTables: data.numberOfTables,
+        tableConfigurations: data.tableConfigurations,
+        selectedGames: data.selectedGames,
+        originalPrice: data.originalPrice,
+        finalPrice: data.finalPrice,
+        savings: data.savings,
+        appliedDiscounts: data.appliedDiscounts,
+        discountBreakdown: data.discountBreakdown
+      };
+
+      const newServiceBookings = [...prev.serviceBookings];
+      if (existingBookingIndex >= 0) {
+        newServiceBookings[existingBookingIndex] = updatedBooking;
+      } else {
+        newServiceBookings.push(updatedBooking);
+      }
+
+      const serviceIds = prev.serviceIds.includes(data.service.id)
+        ? prev.serviceIds
+        : [...prev.serviceIds, data.service.id];
+
+      return {
+        ...prev,
+        serviceIds,
+        guests: totalGuestsForService,
+        serviceBookings: newServiceBookings
+      };
+    });
   };
 
   return (
@@ -755,7 +767,11 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                         <div className="mt-4 pt-4 border-t border-border space-y-2">
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">Guests:</span>
-                            <span className="font-medium">{formData.guests}</span>
+                            <span className="font-medium">
+                              {serviceBooking.tableConfigurations && serviceBooking.tableConfigurations.length > 0
+                                ? serviceBooking.tableConfigurations.reduce((sum, c) => sum + c.guest_count, 0)
+                                : formData.guests}
+                            </span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">Tables:</span>
@@ -796,14 +812,22 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                                     const end = new Date(`2000-01-01T${serviceBooking.departureTime}:00`);
                                     const diffMs = end.getTime() - start.getTime();
                                     const hours = diffMs / (1000 * 60 * 60);
-                                    const guestPrice = calculateGuestPrice(service, formData.guests);
-                                    return guestPrice ? `${(guestPrice * hours).toFixed(2)} GEL` : '0 GEL';
+                                    if (serviceBooking.tableConfigurations && serviceBooking.tableConfigurations.length > 0) {
+                                      const subtotal = serviceBooking.tableConfigurations.reduce((sum, config) => {
+                                        const guestPrice = calculateGuestPrice(service, config.guest_count);
+                                        return sum + (guestPrice ? guestPrice * hours : 0);
+                                      }, 0);
+                                      return `${subtotal.toFixed(2)} GEL`;
+                                    } else {
+                                      const guestPrice = calculateGuestPrice(service, formData.guests);
+                                      return guestPrice ? `${(guestPrice * hours).toFixed(2)} GEL` : '0 GEL';
+                                    }
                                   })()
                               }
                             </span>
                           </div>
                           {/* Show discount information if available */}
-                          {serviceBooking.savings && serviceBooking.savings > 0 && (
+                          {(serviceBooking.savings ?? 0) > 0 && (
                             <div className="text-xs text-green-600 pt-1">
                               {serviceBooking.originalPrice && (
                                 <span className="line-through text-muted-foreground mr-2">
@@ -841,11 +865,19 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
               venueDate={formData.date}
               initialData={
                 dialogService && formData.serviceIds.includes(dialogService.id)
-                  ? {
-                      guests: formData.guests,
-                      arrivalTime: formData.serviceBookings.find(sb => sb.serviceId === dialogService.id)?.arrivalTime || "",
-                      departureTime: formData.serviceBookings.find(sb => sb.serviceId === dialogService.id)?.departureTime || ""
-                    }
+                  ? (() => {
+                      const sb = formData.serviceBookings.find(sb => sb.serviceId === dialogService.id);
+                      return {
+                        guests: sb?.tableConfigurations && sb.tableConfigurations.length > 0
+                          ? sb.tableConfigurations.reduce((sum, c) => sum + c.guest_count, 0)
+                          : formData.guests,
+                        arrivalTime: sb?.arrivalTime || "",
+                        departureTime: sb?.departureTime || "",
+                        numberOfTables: sb?.numberOfTables,
+                        tableConfigurations: sb?.tableConfigurations,
+                        selectedGames: sb?.selectedGames,
+                      };
+                    })()
                   : undefined
               }
             />
