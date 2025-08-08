@@ -2,12 +2,12 @@
 import { motion } from "framer-motion";
 import EnhancedSearchFilters from "@/components/EnhancedSearchFilters";
 import VenueCard from "@/components/VenueCard";
-import CategoryCard from "@/components/CategoryCard";
+// import CategoryCard from "@/components/CategoryCard";
 import { SkeletonCard } from '@/components/ui/loading';
 import Header from "@/components/Header";
 import HomePageFilters from "@/components/HomePageFilters";
 import { useVenues, useVenueServices } from "@/hooks/useVenues";
-import { categories } from "@/data/mockData";
+// import { categories } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -20,7 +20,7 @@ const Index = () => {
   const { data: venues, isLoading } = useVenues();
   const [filteredVenues, setFilteredVenues] = useState(venues);
   const [currentFilters, setCurrentFilters] = useState({
-    category: [],
+    services: [],
     location: [],
     games: []
   });
@@ -60,24 +60,24 @@ const Index = () => {
     console.log('Total venues:', venues.length);
     console.log('Total services:', allVenueServices.length);
 
-    // Apply category filter (OR logic within categories)
-    if (filters.category && filters.category.length > 0) {
-      const venueIdsWithCategory = allVenueServices
+    // Apply services filter (OR logic within services)
+    if (filters.services && filters.services.length > 0) {
+      const venueIdsWithServices = allVenueServices
         .filter(service => {
           const serviceType = (service as any).service_type || '';
           const serviceName = service.name || '';
           
-          // Check if any selected category matches this service
-          return filters.category.some((category: string) => 
-            serviceType.toLowerCase().includes(category.toLowerCase()) ||
-            serviceName.toLowerCase().includes(category.toLowerCase()) ||
-            category.toLowerCase() === 'billiards' && serviceType.toLowerCase().includes('billiard')
+          // Check if any selected service matches this service
+          return filters.services.some((s: string) => 
+            serviceName.toLowerCase() === s.toLowerCase() ||
+            serviceName.toLowerCase().includes(s.toLowerCase()) ||
+            serviceType.toLowerCase().includes(s.toLowerCase())
           );
         })
         .map(service => service.venue_id);
       
-      filtered = filtered.filter(venue => venueIdsWithCategory.includes(venue.id));
-      console.log('After category filter:', filtered.length, 'venues', 'Categories:', filters.category);
+      filtered = filtered.filter(venue => venueIdsWithServices.includes(venue.id));
+      console.log('After services filter:', filtered.length, 'venues', 'Services:', filters.services);
     }
 
     // Apply location filter (OR logic within locations) - search by district only
@@ -142,8 +142,8 @@ const Index = () => {
               className="border-2 border-primary/30 hover:border-primary hover:bg-primary/5 transition-colors"
               onClick={() => {
                 const params = new URLSearchParams();
-                if (currentFilters.category?.length) {
-                  params.set('category', currentFilters.category.join(','));
+                if (currentFilters.services?.length) {
+                  params.set('services', currentFilters.services.join(','));
                 }
                 if (currentFilters.location?.length) {
                   params.set('location', currentFilters.location.join(','));
@@ -179,11 +179,11 @@ const Index = () => {
                 <Button 
                   variant="outline" 
                   onClick={() => {
-                    const emptyFilters = {
-                      category: [],
-                      location: [],
-                      games: []
-                    };
+                      const emptyFilters = {
+                        services: [],
+                        location: [],
+                        games: []
+                      };
                     setCurrentFilters(emptyFilters);
                     setFilteredVenues(venues);
                   }}

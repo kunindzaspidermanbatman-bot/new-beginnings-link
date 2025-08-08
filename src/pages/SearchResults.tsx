@@ -63,7 +63,7 @@ const SearchResults = () => {
   // Filter state management
   const [filteredVenues, setFilteredVenues] = useState<Venue[]>([]);
   const [currentFilters, setCurrentFilters] = useState({
-    category: [],
+    services: [],
     location: [],
     games: []
   });
@@ -100,17 +100,17 @@ const SearchResults = () => {
         : [];
 
     const parsed = {
-      category: parseList(params.get('category')) as string[],
+      services: parseList(params.get('services')) as string[],
       location: parseList(params.get('location')) as string[],
       games: parseList(params.get('games')) as string[]
     };
 
     // Only update if there is at least one filter present
-    if (parsed.category.length || parsed.location.length || parsed.games.length) {
-      setCurrentFilters(parsed as unknown as { category: []; location: []; games: [] });
+    if (parsed.services.length || parsed.location.length || parsed.games.length) {
+      setCurrentFilters(parsed as unknown as { services: []; location: []; games: [] });
       // Apply when data is available
       if (venues && allVenueServices) {
-        handleFiltersChange(parsed as { category: string[]; location: string[]; games: string[] });
+        handleFiltersChange(parsed as { services: string[]; location: string[]; games: string[] });
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -139,7 +139,7 @@ const SearchResults = () => {
 
   // Handle filters change
   const handleFiltersChange = (filters: {
-    category: string[];
+    services: string[];
     location: string[];
     games: string[];
   }) => {
@@ -157,24 +157,23 @@ const SearchResults = () => {
     console.log('Total venues:', venues.length);
     console.log('Total services:', allVenueServices.length);
 
-    // Apply category filter (OR logic within categories)
-    if (filters.category && filters.category.length > 0) {
-      const venueIdsWithCategory = allVenueServices
+    // Apply services filter (OR logic within services)
+    if (filters.services && filters.services.length > 0) {
+      const venueIdsWithServices = allVenueServices
         .filter(service => {
           const serviceType = (service as { service_type?: string }).service_type || '';
           const serviceName = (service as { name?: string }).name || '';
-          
-          // Check if any selected category matches this service
-          return filters.category.some((category: string) => 
-            serviceType.toLowerCase().includes(category.toLowerCase()) ||
-            serviceName.toLowerCase().includes(category.toLowerCase()) ||
-            category.toLowerCase() === 'billiards' && serviceType.toLowerCase().includes('billiard')
-          );
+          return filters.services.some((s: string) => {
+            const sLower = s.toLowerCase();
+            return serviceName.toLowerCase() === sLower ||
+                   serviceName.toLowerCase().includes(sLower) ||
+                   serviceType.toLowerCase().includes(sLower);
+          });
         })
         .map(service => (service as { venue_id: string }).venue_id);
       
-      filtered = filtered.filter(venue => venueIdsWithCategory.includes(venue.id));
-      console.log('After category filter:', filtered.length, 'venues', 'Categories:', filters.category);
+      filtered = filtered.filter(venue => venueIdsWithServices.includes(venue.id));
+      console.log('After services filter:', filtered.length, 'venues', 'Services:', filters.services);
     }
 
     // Apply location filter (OR logic within locations) - search by district only
@@ -370,7 +369,7 @@ const SearchResults = () => {
         <div className="flex justify-start mb-6">
           <HomePageFilters 
             onFiltersChange={handleFiltersChange}
-            initialFilters={currentFilters as unknown as { category: string[]; location: string[]; games: string[] }} 
+            initialFilters={currentFilters as any}
           />
         </div>
 
@@ -423,7 +422,7 @@ const SearchResults = () => {
                         variant="outline" 
                         onClick={() => {
                           const emptyFilters = {
-                            category: [],
+                            services: [],
                             location: [],
                             games: []
                           };

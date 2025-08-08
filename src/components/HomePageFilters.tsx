@@ -8,9 +8,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Filter, X, MapPin, Gamepad2, Tag, Search, ChevronDown, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { useAllServices } from "@/hooks/useAllServices";
 interface FilterState {
-  category: string[];
+  services: string[];
   location: string[];
   games: string[];
 }
@@ -21,14 +21,6 @@ interface HomePageFiltersProps {
   initialFilters?: FilterState;
 }
 
-const categories = [
-  "PC Gaming",
-  "PlayStation 5", 
-  "Billiards",
-  "Table Tennis",
-  "Arcade",
-  "VR Gaming"
-];
 
 const locations = [
   "Old Tbilisi",
@@ -72,22 +64,23 @@ const HomePageFilters = ({ onFiltersChange, className = "", initialFilters }: Ho
   const [isExpanded, setIsExpanded] = useState(false);
   const [gameSearchQuery, setGameSearchQuery] = useState("");
   const [tempFilters, setTempFilters] = useState<FilterState>({
-    category: [],
+    services: [],
     location: [],
     games: []
   });
   const [appliedFilters, setAppliedFilters] = useState<FilterState>({
-    category: [],
+    services: [],
     location: [],
     games: []
   });
   const filterRef = useRef<HTMLDivElement>(null);
-
+  const { data: servicesList } = useAllServices();
+  const services = servicesList || [];
   // Load applied filters into temp filters when panel opens
   useEffect(() => {
     if (isExpanded) {
       setTempFilters({
-        category: [...appliedFilters.category],
+        services: [...appliedFilters.services],
         location: [...appliedFilters.location], 
         games: [...appliedFilters.games]
       });
@@ -98,7 +91,7 @@ const HomePageFilters = ({ onFiltersChange, className = "", initialFilters }: Ho
   useEffect(() => {
     if (initialFilters) {
       setAppliedFilters({
-        category: initialFilters.category ?? [],
+        services: initialFilters.services ?? [],
         location: initialFilters.location ?? [],
         games: initialFilters.games ?? []
       });
@@ -109,11 +102,11 @@ const HomePageFilters = ({ onFiltersChange, className = "", initialFilters }: Ho
     setTempFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleCategoryToggle = (category: string) => {
-    const newCategories = tempFilters.category.includes(category)
-      ? tempFilters.category.filter(c => c !== category)
-      : [...tempFilters.category, category];
-    handleTempFilterChange('category', newCategories);
+  const handleServiceToggle = (service: string) => {
+    const newServices = tempFilters.services.includes(service)
+      ? tempFilters.services.filter(s => s !== service)
+      : [...tempFilters.services, service];
+    handleTempFilterChange('services', newServices);
   };
 
   const handleLocationToggle = (location: string) => {
@@ -137,8 +130,8 @@ const HomePageFilters = ({ onFiltersChange, className = "", initialFilters }: Ho
   };
 
   const clearAllFilters = () => {
-    const emptyFilters = {
-      category: [],
+    const emptyFilters: FilterState = {
+      services: [],
       location: [],
       games: []
     };
@@ -165,7 +158,7 @@ const HomePageFilters = ({ onFiltersChange, className = "", initialFilters }: Ho
   const filteredGames = gameOptions.filter(game => 
     game.toLowerCase().includes(gameSearchQuery.toLowerCase())
   );
-  const activeFilterCount = appliedFilters.category.length + appliedFilters.location.length + appliedFilters.games.length;
+  const activeFilterCount = appliedFilters.services.length + appliedFilters.location.length + appliedFilters.games.length;
 
   return (
     <div className={`relative ${className}`} ref={filterRef}>
@@ -260,20 +253,20 @@ const HomePageFilters = ({ onFiltersChange, className = "", initialFilters }: Ho
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  {/* Category Filter */}
+                  {/* Services Filter */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="text-sm font-semibold flex items-center gap-2 text-foreground">
                         <div className="p-1 bg-primary/10 rounded">
                           <Tag className="h-3 w-3 text-primary" />
                         </div>
-                        Categories
+                        Services
                       </label>
-                      {tempFilters.category.length > 0 && (
+                      {tempFilters.services.length > 0 && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => clearIndividualFilter('category')}
+                          onClick={() => clearIndividualFilter('services')}
                           className="h-5 w-5 p-0 text-muted-foreground hover:text-destructive"
                         >
                           <X className="h-3 w-3" />
@@ -287,9 +280,9 @@ const HomePageFilters = ({ onFiltersChange, className = "", initialFilters }: Ho
                           className="w-full h-9 border border-muted hover:border-primary/50 transition-colors justify-between text-left font-normal text-sm"
                         >
                           <span className="truncate">
-                            {tempFilters.category.length === 0 
-                              ? "Choose categories" 
-                              : `${tempFilters.category.length} selected`
+                            {tempFilters.services.length === 0 
+                              ? "Choose services" 
+                              : `${tempFilters.services.length} selected`
                             }
                           </span>
                           <ChevronDown className="h-3 w-3 opacity-50" />
@@ -297,18 +290,18 @@ const HomePageFilters = ({ onFiltersChange, className = "", initialFilters }: Ho
                       </PopoverTrigger>
                       <PopoverContent className="w-full p-0" align="start">
                         <div className="max-h-60 overflow-y-auto">
-                          {categories.map((category) => (
+                          {services.map((service) => (
                             <div
-                              key={category}
+                              key={service}
                               className="flex items-center space-x-2 px-3 py-2 hover:bg-muted cursor-pointer"
-                              onClick={() => handleCategoryToggle(category)}
+                              onClick={() => handleServiceToggle(service)}
                             >
                               <Checkbox 
-                                checked={tempFilters.category.includes(category)}
+                                checked={tempFilters.services.includes(service)}
                                 onChange={() => {}} // Handled by onClick above
                               />
-                              <span className="text-sm">{category}</span>
-                              {tempFilters.category.includes(category) && (
+                              <span className="text-sm">{service}</span>
+                              {tempFilters.services.includes(service) && (
                                 <Check className="h-4 w-4 ml-auto text-primary" />
                               )}
                             </div>
@@ -462,9 +455,9 @@ const HomePageFilters = ({ onFiltersChange, className = "", initialFilters }: Ho
                       >
                         <p className="text-sm text-muted-foreground mb-2">Applied Filters:</p>
                         <div className="flex flex-wrap gap-2">
-                          {appliedFilters.category.map((category) => (
-                            <Badge key={category} variant="secondary" className="bg-primary/10 text-primary">
-                              Category: {category}
+                          {appliedFilters.services.map((service) => (
+                            <Badge key={service} variant="secondary" className="bg-primary/10 text-primary">
+                              Service: {service}
                             </Badge>
                           ))}
                           {appliedFilters.location.map((location) => (
