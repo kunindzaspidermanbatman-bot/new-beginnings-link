@@ -30,7 +30,7 @@ import { GuestPricingManager } from '@/components/GuestPricingManager';
 
 import { PageLoading } from '@/components/ui/loading';
 
-import { SERVICE_CATALOG, ServiceType } from '@/constants/services';
+import { SERVICE_CATALOG, ServiceType, isPerTableService } from '@/constants/services';
 
 interface VenueService {
   id?: string;
@@ -770,11 +770,27 @@ const EditVenue = () => {
                           </p>
                         </div>
 
-                        {/* Guest Pricing */}
-                        <GuestPricingManager
-                          rules={service.guest_pricing_rules}
-                          onRulesChange={(rules) => updateService(index, 'guest_pricing_rules', rules)}
-                        />
+                        {/* Pricing Configuration */}
+                        {isPerTableService(service.service_type) ? (
+                          <div className="space-y-2">
+                            <Label>Price per Table (GEL)</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={service.price || 0}
+                              onChange={(e) => updateService(index, 'price', parseFloat(e.target.value) || 0)}
+                              className="w-48"
+                            />
+                            <p className="text-sm text-muted-foreground">For PC Gaming and Billiards, pricing is per table per hour.</p>
+                          </div>
+                        ) : (
+                          <GuestPricingManager
+                            rules={service.guest_pricing_rules}
+                            onRulesChange={(rules) => updateService(index, 'guest_pricing_rules', rules)}
+                          />
+                        )}
+
                     </CardContent>
                   </Card>
                 ))

@@ -19,6 +19,8 @@ import { VenueService } from "@/hooks/useVenues";
 import { calculateGuestPrice, getServiceDisplayPrice } from "@/utils/guestPricing";
 import { useServiceDiscountCalculation } from "@/hooks/useVenueDiscountCalculation";
 import ServiceDiscountIndicator from "@/components/ServiceDiscountIndicator";
+import { isPerTableService } from "@/constants/services";
+
 
 interface BookingFormProps {
   venueId: string;
@@ -756,27 +758,29 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                               <h4 className="font-semibold text-lg">{service.name}</h4>
                               <ServiceDiscountIndicator service={service} />
                             </div>
-                           <p className="text-muted-foreground">
-                             {getServiceDisplayPrice(service)} · {service.service_type}
-                           </p>
-                         </div>
-                      </div>
-                      
-                      {/* Selected booking information */}
-                      {isSelected && serviceBooking && formData.date && (
-                        <div className="mt-4 pt-4 border-t border-border space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Guests:</span>
-                            <span className="font-medium">
-                              {serviceBooking.tableConfigurations && serviceBooking.tableConfigurations.length > 0
-                                ? serviceBooking.tableConfigurations.reduce((sum, c) => sum + c.guest_count, 0)
-                                : formData.guests}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Tables:</span>
-                            <span className="font-medium">{getTotalTables(serviceBooking)} table{getTotalTables(serviceBooking) !== 1 ? 's' : ''}</span>
-                          </div>
+            <p className="text-muted-foreground">
+               {getServiceDisplayPrice(service)} · {service.service_type}
+             </p>
+           </div>
+          </div>
+          
+          {/* Selected booking information */}
+          {isSelected && serviceBooking && formData.date && (
+            <div className="mt-4 pt-4 border-t border-border space-y-2">
+              {!isPerTableService(service.service_type) && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Guests:</span>
+                  <span className="font-medium">
+                    {serviceBooking.tableConfigurations && serviceBooking.tableConfigurations.length > 0
+                      ? serviceBooking.tableConfigurations.reduce((sum, c) => sum + c.guest_count, 0)
+                      : formData.guests}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Tables:</span>
+                <span className="font-medium">{getTotalTables(serviceBooking)} table{getTotalTables(serviceBooking) !== 1 ? 's' : ''}</span>
+              </div>
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">Date:</span>
                             <span className="font-medium">{format(formData.date, "MMM dd, yyyy")}</span>
@@ -819,7 +823,8 @@ const BookingForm = ({ venueId, venueName, venuePrice, openingTime, closingTime,
                                       }, 0);
                                       return `${subtotal.toFixed(2)} GEL`;
                                     } else {
-                                      const guestPrice = calculateGuestPrice(service, formData.guests);
+                                      // For per-table services without table configs, default to one table
+                                      const guestPrice = calculateGuestPrice(service, 1);
                                       return guestPrice ? `${(guestPrice * hours).toFixed(2)} GEL` : '0 GEL';
                                     }
                                   })()

@@ -1,3 +1,5 @@
+import { isPerTableService } from "@/constants/services";
+
 export interface GuestPricingRule {
   maxGuests: number;
   price: number;
@@ -7,7 +9,7 @@ export interface ServiceWithGuestPricing {
   id: string;
   name?: string;
   service_type?: string;
-  price: number; // Legacy field - will be deprecated
+  price: number; // Legacy field - base price (per table for certain services)
   guest_pricing_rules?: GuestPricingRule[];
   images?: string[];
   service_games?: string[];
@@ -15,15 +17,18 @@ export interface ServiceWithGuestPricing {
 
 /**
  * Calculate price for a service based on guest count using pricing rules
- * @param service - Service with guest pricing rules
- * @param guestCount - Number of guests
- * @returns Total price for the guest count, or null if no valid rule found
+ * For per-table services (PC Gaming, Billiards), pricing is per table and does not depend on guests
  */
 export const calculateGuestPrice = (
-  service: ServiceWithGuestPricing, 
+  service: ServiceWithGuestPricing,
   guestCount: number
 ): number | null => {
-  // If no guest pricing rules are defined, fall back to legacy price calculation
+  // Per-table services: ignore guestCount and rules, use flat per-table price
+  if (isPerTableService(service.service_type)) {
+    return service.price;
+  }
+
+  // If no guest pricing rules are defined, fall back to legacy per-guest price
   if (!service.guest_pricing_rules || service.guest_pricing_rules.length === 0) {
     return service.price * guestCount;
   }
@@ -39,15 +44,15 @@ export const calculateGuestPrice = (
 
 /**
  * Get the maximum guest count supported by a service
- * @param service - Service with guest pricing rules
- * @returns Maximum guest count or null if unlimited
  */
 export const getMaxGuestCount = (service: ServiceWithGuestPricing): number | null => {
+  if (isPerTableService(service.service_type)) return null; // Not applicable
+
   if (!service.guest_pricing_rules || service.guest_pricing_rules.length === 0) {
     return null; // No limit with legacy pricing
   }
 
-  const maxRule = service.guest_pricing_rules.reduce((max, rule) => 
+  const maxRule = service.guest_pricing_rules.reduce((max, rule) =>
     rule.maxGuests > max.maxGuests ? rule : max
   );
   
@@ -56,24 +61,24 @@ export const getMaxGuestCount = (service: ServiceWithGuestPricing): number | nul
 
 /**
  * Check if a guest count is valid for a service
- * @param service - Service with guest pricing rules
- * @param guestCount - Number of guests
- * @returns True if guest count is supported
  */
 export const isValidGuestCount = (
-  service: ServiceWithGuestPricing, 
+  service: ServiceWithGuestPricing,
   guestCount: number
 ): boolean => {
+  if (isPerTableService(service.service_type)) return true; // Always valid
   const price = calculateGuestPrice(service, guestCount);
   return price !== null;
 };
 
 /**
  * Get the display price for a service (lowest available price)
- * @param service - Service with guest pricing rules
- * @returns Display price string
  */
 export const getServiceDisplayPrice = (service: ServiceWithGuestPricing): string => {
+  if (isPerTableService(service.service_type)) {
+    return `${service.price} GEL/table`;
+  }
+
   if (!service.guest_pricing_rules || service.guest_pricing_rules.length === 0) {
     return `${service.price} GEL/guest`;
   }
@@ -83,5 +88,5 @@ export const getServiceDisplayPrice = (service: ServiceWithGuestPricing): string
   }
 
   const lowestPrice = Math.min(...service.guest_pricing_rules.map(rule => rule.price));
-      return `From ${lowestPrice} GEL`;
+  return `From ${lowestPrice} GEL`;
 };

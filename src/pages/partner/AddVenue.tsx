@@ -20,7 +20,7 @@ import { ServiceImageUpload } from '@/components/ServiceImageUpload';
 import GoogleLocationPicker from '@/components/GoogleLocationPicker';
 import { GuestPricingManager } from '@/components/GuestPricingManager';
 
-import { SERVICE_CATALOG, ServiceType } from '@/constants/services';
+import { SERVICE_CATALOG, ServiceType, isPerTableService } from '@/constants/services';
 
 interface VenueService {
   service_type: ServiceType;
@@ -115,19 +115,24 @@ const AddVenue = () => {
 
     // Validate services - at least one required with valid pricing
     const validServices = services.filter(service => {
-      // Check if service has type and guest pricing rules
-      const hasServiceType = service.service_type;
+      const hasServiceType = !!service.service_type;
+      const perTable = isPerTableService(service.service_type);
+
+      if (perTable) {
+        const hasValidPerTable = service.price > 0 && (service.max_tables || 0) > 0;
+        return hasServiceType && hasValidPerTable;
+      }
+
       const hasGuestPricing = service.guest_pricing_rules && 
                              service.guest_pricing_rules.length > 0 && 
                              service.guest_pricing_rules.every(rule => rule.price > 0 && rule.maxGuests > 0);
-      
       return hasServiceType && hasGuestPricing;
     });
 
     if (validServices.length === 0) {
       toast({
         title: "Service required",
-        description: "Please add at least one service with service type and Guest Count Pricing rules.",
+        description: "Add at least one valid service. For PC Gaming/Billiards set Price per Table; for others provide Guest Pricing rules.",
         variant: "destructive",
       });
       return;
@@ -544,11 +549,27 @@ const AddVenue = () => {
                             </p>
                           </div>
 
-                          {/* Guest Pricing */}
-                          <GuestPricingManager
-                            rules={service.guest_pricing_rules}
-                            onRulesChange={(rules) => updateService(index, 'guest_pricing_rules', rules)}
-                          />
+                          {/* Pricing Configuration */}
+                          {isPerTableService(service.service_type) ? (
+                            <div className="space-y-2">
+                              <Label>Price per Table (GEL)</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={service.price || 0}
+                                onChange={(e) => updateService(index, 'price', parseFloat(e.target.value) || 0)}
+                                className="w-48"
+                              />
+                              <p className="text-sm text-muted-foreground">For PC Gaming and Billiards, pricing is per table per hour.</p>
+                            </div>
+                          ) : (
+                            <GuestPricingManager
+                              rules={service.guest_pricing_rules}
+                              onRulesChange={(rules) => updateService(index, 'guest_pricing_rules', rules)}
+                            />
+                          )}
+
                         </CardContent>
                       </Card>
                       

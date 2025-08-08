@@ -15,6 +15,8 @@ import { VenueService } from "@/hooks/useVenues";
 import { useToast } from "@/hooks/use-toast";
 import { calculateGuestPrice, isValidGuestCount, getMaxGuestCount } from "@/utils/guestPricing";
 import { useServiceDiscountCalculation } from "@/hooks/useVenueDiscountCalculation";
+import { isPerTableService } from "@/constants/services";
+
 
 interface ServiceBookingDialogProps {
   service: VenueService | null;
@@ -356,65 +358,68 @@ const ServiceBookingDialog = ({
           </div>
 
           {/* Guest Count per Table */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium">Guests per Table</label>
+          {!isPerTableService(service?.service_type) && (
             <div className="space-y-3">
-              {tableConfigurations.map((config) => (
-                <div key={config.table_number} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">Table {config.table_number}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const newGuestCount = Math.max(1, config.guest_count - 1);
-                        if (isValidGuestCount(service, newGuestCount)) {
-                          setTableConfigurations(prev =>
-                            prev.map(c =>
-                              c.table_number === config.table_number
-                                ? { ...c, guest_count: newGuestCount }
-                                : c
-                            )
-                          );
+              <label className="text-sm font-medium">Guests per Table</label>
+              <div className="space-y-3">
+                {tableConfigurations.map((config) => (
+                  <div key={config.table_number} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">Table {config.table_number}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newGuestCount = Math.max(1, config.guest_count - 1);
+                          if (isValidGuestCount(service, newGuestCount)) {
+                            setTableConfigurations(prev =>
+                              prev.map(c =>
+                                c.table_number === config.table_number
+                                  ? { ...c, guest_count: newGuestCount }
+                                  : c
+                              )
+                            );
+                          }
+                        }}
+                        disabled={config.guest_count <= 1}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="w-8 text-center text-sm font-medium">{config.guest_count}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newGuestCount = Math.min(getMaxGuestCount(service) || 20, config.guest_count + 1);
+                          if (isValidGuestCount(service, newGuestCount)) {
+                            setTableConfigurations(prev =>
+                              prev.map(c =>
+                                c.table_number === config.table_number
+                                  ? { ...c, guest_count: newGuestCount }
+                                  : c
+                              )
+                            );
+                          }
+                        }}
+                        disabled={
+                          config.guest_count >= (getMaxGuestCount(service) || 20) ||
+                          !isValidGuestCount(service, config.guest_count + 1)
                         }
-                      }}
-                      disabled={config.guest_count <= 1}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <span className="w-8 text-center text-sm font-medium">{config.guest_count}</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const newGuestCount = Math.min(getMaxGuestCount(service) || 20, config.guest_count + 1);
-                        if (isValidGuestCount(service, newGuestCount)) {
-                          setTableConfigurations(prev =>
-                            prev.map(c =>
-                              c.table_number === config.table_number
-                                ? { ...c, guest_count: newGuestCount }
-                                : c
-                            )
-                          );
-                        }
-                      }}
-                      disabled={
-                        config.guest_count >= (getMaxGuestCount(service) || 20) ||
-                        !isValidGuestCount(service, config.guest_count + 1)
-                      }
-                      className="h-8 w-8 p-0"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
+                        className="h-8 w-8 p-0"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
 
           {/* Game Selection - Only show if service has games */}
           {availableGames.length > 0 && (
